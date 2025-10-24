@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MarkdownPreview } from "@/components/MarkdownPreview";
 import { EditButton } from "@/components/EditButton";
+import { PersonaAvatar } from "@/components/PersonaAvatar";
 
 interface Persona {
   _id: string;
   name: string;
   role: string;
   transcriptData: string;
+  color: string;
   createdAt: string;
 }
 
@@ -22,6 +24,21 @@ export default function SetupPage() {
   const [name, setName] = useState("");
   const [role, setRole] = useState("");
   const [transcriptData, setTranscriptData] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
+
+  // Available colors for personas
+  const availableColors = [
+    "#3B82F6", // blue
+    "#8B5CF6", // purple
+    "#EC4899", // pink
+    "#10B981", // green
+    "#F59E0B", // amber
+    "#EF4444", // red
+    "#06B6D4", // cyan
+    "#6366F1", // indigo
+    "#F97316", // orange
+    "#14B8A6", // teal
+  ];
 
   // Load personas
   useEffect(() => {
@@ -55,7 +72,7 @@ export default function SetupPage() {
       const response = await fetch("/api/personas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, role, transcriptData }),
+        body: JSON.stringify({ name, role, transcriptData, color: selectedColor || undefined }),
       });
 
       if (response.ok) {
@@ -63,6 +80,7 @@ export default function SetupPage() {
         setName("");
         setRole("");
         setTranscriptData("");
+        setSelectedColor("");
         // Reload personas
         await loadPersonas();
       } else {
@@ -144,6 +162,55 @@ export default function SetupPage() {
                   color: 'var(--text-primary)'
                 }}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Avatar Color {selectedColor && "(Optional - auto-generated if not selected)"}
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="flex gap-2 flex-wrap">
+                  {availableColors.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setSelectedColor(color)}
+                      className={`w-10 h-10 rounded-full transition-all ${
+                        selectedColor === color ? "ring-2 ring-white ring-offset-2" : "hover:scale-110"
+                      }`}
+                      style={{
+                        backgroundColor: color,
+                        ringOffsetColor: 'var(--bg-secondary)'
+                      }}
+                      title={color}
+                    />
+                  ))}
+                  {selectedColor && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedColor("")}
+                      className="w-10 h-10 rounded-full border-2 flex items-center justify-center text-xs hover:scale-110 transition-all"
+                      style={{
+                        borderColor: 'var(--text-secondary)',
+                        color: 'var(--text-secondary)'
+                      }}
+                      title="Clear selection (auto-generate)"
+                    >
+                      Auto
+                    </button>
+                  )}
+                </div>
+                {name && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Preview:</span>
+                    <PersonaAvatar
+                      name={name || "?"}
+                      color={selectedColor || "#9CA3AF"}
+                      size="medium"
+                    />
+                  </div>
+                )}
+              </div>
             </div>
 
             <div>

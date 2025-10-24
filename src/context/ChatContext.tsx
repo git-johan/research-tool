@@ -8,6 +8,8 @@ export interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  personaId?: string;
+  personaName?: string;
 }
 
 export interface Persona {
@@ -15,7 +17,14 @@ export interface Persona {
   name: string;
   role: string;
   transcriptData: string;
+  color: string;
   createdAt: string;
+}
+
+export interface TypingPersona {
+  personaId: string;
+  personaName: string;
+  personaColor: string;
 }
 
 interface ChatContextType {
@@ -26,6 +35,7 @@ interface ChatContextType {
   selectedPersonaId: string | null;
   personas: Persona[];
   isLoadingPersonas: boolean;
+  typingPersonas: TypingPersona[];
   addMessage: (role: "user" | "assistant", content: string) => void;
   sendMessage: (content: string) => Promise<void>;
   sendInitialGreeting: () => Promise<void>;
@@ -44,6 +54,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [selectedPersonaId, setSelectedPersonaId] = useState<string | null>(null);
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [isLoadingPersonas, setIsLoadingPersonas] = useState(true);
+  const [typingPersonas, setTypingPersonas] = useState<TypingPersona[]>([]);
   const [clientId, setClientId] = useState<string>("");
   const currentSessionRef = React.useRef<string>("");
 
@@ -88,6 +99,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             role: msg.role,
             content: msg.content,
             timestamp: new Date(msg.timestamp),
+            ...(msg.personaId && { personaId: msg.personaId }),
+            ...(msg.personaName && { personaName: msg.personaName }),
           }));
           setMessages(loadedMessages);
         } else {
@@ -176,53 +189,128 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           throw new Error("No response body");
         }
 
-        let assistantMessage = "";
-        let assistantMessageId = `${Date.now()}-${Math.random()}`;
+        const isGroupChat = selectedPersonaId === "GROUP";
 
-        // Read streaming response
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        if (isGroupChat) {
+          // GROUP CHAT MODE: Handle multiple persona responses with typing indicators
+          const personaResponses = new Map<string, { content: string; name: string; color: string; id: string }>();
 
-          // Check if session changed - if so, stop updating UI but let API save to DB
-          if (currentSessionRef.current !== requestSessionId) {
-            console.log("Session changed during streaming, stopping UI updates");
-            break;
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            // Check if session changed
+            if (currentSessionRef.current !== requestSessionId) {
+              console.log("Session changed during streaming, stopping UI updates");
+              break;
+            }
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split("\n");
+
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                const data = line.slice(6);
+                if (data === "[DONE]") {
+                  continue; // Don't break - wait for stream to close naturally
+                }
+
+                try {
+                  const parsed = JSON.parse(data);
+
+                  if (parsed.type === "typing_start") {
+                    // Add persona to typing list
+                    setTypingPersonas((prev) => {
+                      if (prev.some((p) => p.personaId === parsed.personaId)) {
+                        return prev;
+                      }
+                      return [...prev, {
+                        personaId: parsed.personaId,
+                        personaName: parsed.personaName,
+                        personaColor: parsed.personaColor,
+                      }];
+                    });
+                  } else if (parsed.type === "typing_stop") {
+                    // Remove persona from typing list
+                    setTypingPersonas((prev) =>
+                      prev.filter((p) => p.personaId !== parsed.personaId)
+                    );
+                  } else if (parsed.type === "complete_response" && parsed.personaId) {
+                    // Add complete response immediately
+                    if (currentSessionRef.current === requestSessionId) {
+                      const newMessage = {
+                        id: `${Date.now()}-${parsed.personaId}-${Math.random()}`,
+                        role: "assistant" as const,
+                        content: parsed.content,
+                        timestamp: new Date(),
+                        personaName: parsed.personaName,
+                        personaId: parsed.personaId,
+                      };
+
+                      setMessages((prev) => [...prev, newMessage]);
+                    }
+                  } else if (parsed.type === "error") {
+                    // Remove from typing on error
+                    setTypingPersonas((prev) =>
+                      prev.filter((p) => p.personaId !== parsed.personaId)
+                    );
+                  }
+                } catch (e) {
+                  // Skip invalid JSON
+                }
+              }
+            }
           }
 
-          const chunk = decoder.decode(value);
-          const lines = chunk.split("\n");
+          // Clear all typing indicators when done
+          setTypingPersonas([]);
+        } else {
+          // INDIVIDUAL CHAT MODE: Original behavior
+          let assistantMessage = "";
+          let assistantMessageId = `${Date.now()}-${Math.random()}`;
 
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const data = line.slice(6);
-              if (data === "[DONE]") {
-                break;
-              }
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.chunk) {
-                  assistantMessage += parsed.chunk;
+            if (currentSessionRef.current !== requestSessionId) {
+              console.log("Session changed during streaming, stopping UI updates");
+              break;
+            }
 
-                  // Only update message if session hasn't changed
-                  if (currentSessionRef.current === requestSessionId) {
-                    setMessages((prev) => {
-                      const filtered = prev.filter((m) => m.id !== assistantMessageId);
-                      return [
-                        ...filtered,
-                        {
-                          id: assistantMessageId,
-                          role: "assistant" as const,
-                          content: assistantMessage,
-                          timestamp: new Date(),
-                        },
-                      ];
-                    });
-                  }
+            const chunk = decoder.decode(value);
+            const lines = chunk.split("\n");
+
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                const data = line.slice(6);
+                if (data === "[DONE]") {
+                  continue; // Don't break - wait for stream to close naturally
                 }
-              } catch (e) {
-                // Skip invalid JSON
+
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.chunk) {
+                    assistantMessage += parsed.chunk;
+
+                    if (currentSessionRef.current === requestSessionId) {
+                      setMessages((prev) => {
+                        const filtered = prev.filter((m) => m.id !== assistantMessageId);
+                        return [
+                          ...filtered,
+                          {
+                            id: assistantMessageId,
+                            role: "assistant" as const,
+                            content: assistantMessage,
+                            timestamp: new Date(),
+                          },
+                        ];
+                      });
+                    }
+                  }
+                } catch (e) {
+                  // Skip invalid JSON
+                }
               }
             }
           }
@@ -269,50 +357,119 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }
 
       const decoder = new TextDecoder();
-      let greeting = "";
-      let greetingMessageId = `${Date.now()}-${Math.random()}`;
+      const isGroupChat = selectedPersonaId === "GROUP";
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      if (isGroupChat) {
+        // GROUP CHAT MODE: Handle multiple persona greetings with typing
+        const personaResponses = new Map<string, { content: string; name: string; color: string; id: string }>();
 
-        // Check if session changed - if so, stop updating UI
-        if (currentSessionRef.current !== requestSessionId) {
-          console.log("Session changed during initial greeting, stopping UI updates");
-          break;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          if (currentSessionRef.current !== requestSessionId) {
+            console.log("Session changed during initial greeting, stopping UI updates");
+            break;
+          }
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6);
+              if (data === "[DONE]") break;
+
+              try {
+                const parsed = JSON.parse(data);
+
+                if (parsed.type === "typing_start") {
+                  setTypingPersonas((prev) => {
+                    if (prev.some((p) => p.personaId === parsed.personaId)) {
+                      return prev;
+                    }
+                    return [...prev, {
+                      personaId: parsed.personaId,
+                      personaName: parsed.personaName,
+                      personaColor: parsed.personaColor,
+                    }];
+                  });
+                } else if (parsed.type === "typing_stop") {
+                  setTypingPersonas((prev) =>
+                    prev.filter((p) => p.personaId !== parsed.personaId)
+                  );
+                } else if (parsed.type === "complete_response" && parsed.personaId) {
+                  // Add complete response immediately
+                  if (currentSessionRef.current === requestSessionId) {
+                    const newMessage = {
+                      id: `${Date.now()}-${parsed.personaId}-${Math.random()}`,
+                      role: "assistant" as const,
+                      content: parsed.content,
+                      timestamp: new Date(),
+                      personaName: parsed.personaName,
+                    };
+
+                    setMessages((prev) => [...prev, newMessage]);
+                  }
+                } else if (parsed.type === "error") {
+                  setTypingPersonas((prev) =>
+                    prev.filter((p) => p.personaId !== parsed.personaId)
+                  );
+                }
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
         }
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split("\n");
+        // Clear all typing indicators
+        setTypingPersonas([]);
+      } else {
+        // INDIVIDUAL CHAT MODE: Original behavior
+        let greeting = "";
+        let greetingMessageId = `${Date.now()}-${Math.random()}`;
 
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") break;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.chunk) {
-                greeting += parsed.chunk;
+          if (currentSessionRef.current !== requestSessionId) {
+            console.log("Session changed during initial greeting, stopping UI updates");
+            break;
+          }
 
-                // Only update message if session hasn't changed
-                if (currentSessionRef.current === requestSessionId) {
-                  setMessages((prev) => {
-                    const filtered = prev.filter((m) => m.id !== greetingMessageId);
-                    return [
-                      ...filtered,
-                      {
-                        id: greetingMessageId,
-                        role: "assistant" as const,
-                        content: greeting,
-                        timestamp: new Date(),
-                      },
-                    ];
-                  });
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6);
+              if (data === "[DONE]") break;
+
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.chunk) {
+                  greeting += parsed.chunk;
+
+                  if (currentSessionRef.current === requestSessionId) {
+                    setMessages((prev) => {
+                      const filtered = prev.filter((m) => m.id !== greetingMessageId);
+                      return [
+                        ...filtered,
+                        {
+                          id: greetingMessageId,
+                          role: "assistant" as const,
+                          content: greeting,
+                          timestamp: new Date(),
+                        },
+                      ];
+                    });
+                  }
                 }
+              } catch (e) {
+                // Skip invalid JSON
               }
-            } catch (e) {
-              // Skip invalid JSON
             }
           }
         }
@@ -356,6 +513,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         selectedPersonaId,
         personas,
         isLoadingPersonas,
+        typingPersonas,
         addMessage,
         sendMessage,
         sendInitialGreeting,

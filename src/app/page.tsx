@@ -18,10 +18,12 @@ function ChatInterface() {
     selectedPersonaId,
     personas,
     isLoadingPersonas,
+    typingPersonas,
     setSelectedPersona,
     sendInitialGreeting,
     clearMessages,
   } = useChat();
+
 
   // Auto-scroll to bottom when new messages arrive
   const messagesEndRef = useScrollToBottom([messages]);
@@ -32,6 +34,7 @@ function ChatInterface() {
     isLoadingMessages,
     isLoadingPersonas,
     sessionToken,
+    selectedPersonaId,
     sendInitialGreeting,
   });
 
@@ -57,28 +60,54 @@ function ChatInterface() {
 
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto w-full sm:max-w-[900px] relative">
-        <div className="px-4 md:px-8 pt-2 pb-2">
+        <div className="px-4 md:px-8 pt-6 pb-2">
+          {/* Show placeholder for empty group chat */}
+          {selectedPersonaId === "GROUP" && messages.length === 0 && !isLoading && !isLoadingMessages && (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center opacity-50">
+                <p className="text-lg mb-2">Group Chat Mode</p>
+                <p className="text-sm">Ask your personas about a problem you're facing...</p>
+              </div>
+            </div>
+          )}
+
           {messages.map((message, index) => {
             // Show header if it's the first message or if the previous message was from a different sender
             const showHeader =
               index === 0 || messages[index - 1].role !== message.role;
 
-            // Get the selected persona
-            const selectedPersona = personas.find(
-              (p) => p._id === selectedPersonaId,
-            );
+            // Get the persona for this message (for color)
+            let messagePersona;
+            if (message.personaId) {
+              // Group chat message - find persona by ID
+              messagePersona = personas.find((p) => p._id === message.personaId);
+            } else {
+              // Individual chat - use selected persona
+              messagePersona = personas.find((p) => p._id === selectedPersonaId);
+            }
 
             return (
               <ChatMessage
                 key={message.id}
                 message={message}
                 showHeader={showHeader}
-                personaName={selectedPersona?.name}
+                personaName={messagePersona?.name}
+                personaColor={messagePersona?.color}
               />
             );
           })}
 
-          {isLoading && <TypingIndicator />}
+          {/* Show typing indicators for each persona */}
+          {typingPersonas.map((persona) => (
+            <TypingIndicator
+              key={persona.personaId}
+              personaName={persona.personaName}
+              personaColor={persona.personaColor}
+            />
+          ))}
+
+          {/* Show generic loading for non-group chat */}
+          {isLoading && selectedPersonaId !== "GROUP" && <TypingIndicator />}
 
           <div ref={messagesEndRef} />
         </div>

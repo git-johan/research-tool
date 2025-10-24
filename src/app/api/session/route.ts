@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { getOrCreateSessionForPersona } from "@/lib/db";
+import { getOrCreateSessionForPersona, getOrCreateGroupSession } from "@/lib/db";
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,8 +11,15 @@ export async function GET(req: NextRequest) {
       return new Response("clientId is required", { status: 400 });
     }
 
-    // personaId can be null (for general research chat) or a specific persona ID
-    const session = await getOrCreateSessionForPersona(personaId, clientId);
+    let session;
+
+    // Check if this is a group chat request
+    if (personaId === "GROUP") {
+      session = await getOrCreateGroupSession(clientId);
+    } else {
+      // personaId can be null (for general research chat) or a specific persona ID
+      session = await getOrCreateSessionForPersona(personaId, clientId);
+    }
 
     return Response.json({
       sessionId: session._id,

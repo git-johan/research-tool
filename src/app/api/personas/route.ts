@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createPersona, getPersonas, deletePersona } from "@/lib/db";
+import { createPersona, getPersonas, deletePersona, updatePersona } from "@/lib/db";
 
 export async function GET() {
   try {
@@ -13,16 +13,37 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, role, transcriptData } = await req.json();
+    const { name, role, transcriptData, color } = await req.json();
 
     if (!name || !role || !transcriptData) {
       return new Response("Missing required fields", { status: 400 });
     }
 
-    const persona = await createPersona(name, role, transcriptData);
+    const persona = await createPersona(name, role, transcriptData, color);
     return Response.json({ persona });
   } catch (error) {
     console.error("Failed to create persona:", error);
+    return new Response("Internal server error", { status: 500 });
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const { personaId, name, role, transcriptData, color } = await req.json();
+
+    if (!personaId || !name || !role || !transcriptData) {
+      return new Response("Missing required fields", { status: 400 });
+    }
+
+    const updatedPersona = await updatePersona(personaId, name, role, transcriptData, color);
+
+    if (!updatedPersona) {
+      return new Response("Persona not found", { status: 404 });
+    }
+
+    return Response.json({ persona: updatedPersona });
+  } catch (error) {
+    console.error("Failed to update persona:", error);
     return new Response("Internal server error", { status: 500 });
   }
 }

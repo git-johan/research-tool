@@ -37,6 +37,8 @@ export interface MessageDoc {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  personaId?: string; // For group chats, track which persona sent the message
+  personaName?: string; // For displaying in group chats
 }
 
 export interface SessionDoc {
@@ -47,7 +49,8 @@ export interface SessionDoc {
   messages: MessageDoc[];
   shareId?: string; // Optional shareable link ID
   isShared?: boolean; // Whether this conversation is shared
-  personaId?: string | null; // Associated persona (null for general research chat)
+  personaId?: string | null; // Associated persona (null for general research chat, "GROUP" for group sessions)
+  sessionType?: "individual" | "group"; // Type of session
   clientId?: string; // Browser-specific identifier for isolating conversations
 }
 
@@ -75,13 +78,17 @@ export async function createSession(sessionId: string, personaId?: string | null
 export async function addMessage(
   sessionId: string,
   role: "user" | "assistant",
-  content: string
+  content: string,
+  personaId?: string,
+  personaName?: string
 ): Promise<void> {
   const db = await getDb();
   const message: MessageDoc = {
     role,
     content,
     timestamp: new Date(),
+    ...(personaId && { personaId }),
+    ...(personaName && { personaName }),
   };
 
   await db.collection<SessionDoc>("sessions").updateOne(
@@ -124,6 +131,36 @@ export async function getOrCreateSessionForPersona(personaId: string | null, cli
   return await createSession(newSessionId, personaId, clientId);
 }
 
+export async function getOrCreateGroupSession(clientId: string): Promise<SessionDoc> {
+  const db = await getDb();
+
+  // Look for existing group session for this client
+  const existingSession = await db.collection<SessionDoc>("sessions").findOne({
+    personaId: "GROUP",
+    sessionType: "group",
+    clientId: clientId
+  });
+
+  if (existingSession) {
+    return existingSession;
+  }
+
+  // Create new group session
+  const newSessionId = crypto.randomUUID();
+  const newSession: SessionDoc = {
+    _id: newSessionId,
+    createdAt: new Date(),
+    isAnonymous: true,
+    userId: null,
+    messages: [],
+    personaId: "GROUP",
+    sessionType: "group",
+    clientId: clientId,
+  };
+  await db.collection<SessionDoc>("sessions").insertOne(newSession);
+  return newSession;
+}
+
 export async function createShareLink(sessionId: string): Promise<string> {
   const db = await getDb();
   const shareId = crypto.randomUUID();
@@ -153,13 +190,34 @@ export interface PersonaDoc {
   name: string;
   role: string;
   transcriptData: string;
+  color: string; // Hex color for avatar background
+  avatarImage?: string; // Base64 encoded image data (optional)
   createdAt: Date;
+}
+
+// Generate a random pleasant color for persona avatars
+function generatePersonaColor(): string {
+  const colors = [
+    "#3B82F6", // blue
+    "#8B5CF6", // purple
+    "#EC4899", // pink
+    "#10B981", // green
+    "#F59E0B", // amber
+    "#EF4444", // red
+    "#06B6D4", // cyan
+    "#6366F1", // indigo
+    "#F97316", // orange
+    "#14B8A6", // teal
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
 }
 
 export async function createPersona(
   name: string,
   role: string,
-  transcriptData: string
+  transcriptData: string,
+  color?: string,
+  avatarImage?: string
 ): Promise<PersonaDoc> {
   const db = await getDb();
   const newPersona: PersonaDoc = {
@@ -167,6 +225,8 @@ export async function createPersona(
     name,
     role,
     transcriptData,
+    color: color || generatePersonaColor(),
+    ...(avatarImage && { avatarImage }),
     createdAt: new Date(),
   };
   await db.collection<PersonaDoc>("personas").insertOne(newPersona);
@@ -179,13 +239,44 @@ export async function getPersonas(): Promise<PersonaDoc[]> {
     .find({})
     .sort({ createdAt: -1 })
     .toArray();
-  return personas;
+
+  // Add fallback color for personas created before color field was added
+  return personas.map(p => ({
+    ...p,
+    color: p.color || generatePersonaColor()
+  }));
 }
 
 export async function getPersona(personaId: string): Promise<PersonaDoc | null> {
   const db = await getDb();
   const persona = await db.collection<PersonaDoc>("personas").findOne({ _id: personaId });
-  return persona;
+  if (!persona) return null;
+
+  // Add fallback color for personas created before color field was added
+  return {
+    ...persona,
+    color: persona.color || generatePersonaColor()
+  };
+}
+
+export async function updatePersona(
+  personaId: string,
+  name: string,
+  role: string,
+  transcriptData: string,
+  color?: string
+): Promise<PersonaDoc | null> {
+  const db = await getDb();
+  const updateFields: Partial<PersonaDoc> = { name, role, transcriptData };
+  if (color) {
+    updateFields.color = color;
+  }
+  const result = await db.collection<PersonaDoc>("personas").findOneAndUpdate(
+    { _id: personaId },
+    { $set: updateFields },
+    { returnDocument: "after" }
+  );
+  return result || null;
 }
 
 export async function deletePersona(personaId: string): Promise<void> {
