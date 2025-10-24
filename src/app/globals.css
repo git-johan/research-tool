@@ -1,6 +1,67 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/* Theme CSS Variables */
+:root {
+  /* Light mode colors (default) */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F3F4F6;
+  --bg-surface: #E5E7EB;
+  --text-primary: #1F2937;
+  --text-secondary: #6B7280;
+  --text-tertiary: #9CA3AF;
+  --border-color: #D1D5DB;
+  --border-color-hover: #9CA3AF;
+  --link-color: #2563EB;
+  --link-color-underline: rgba(37, 99, 235, 0.3);
+  --link-color-hover: rgba(37, 99, 235, 0.8);
+  --code-bg: rgba(0, 0, 0, 0.05);
+  --code-text: #1F2937;
+  --pre-bg: rgba(0, 0, 0, 0.03);
+  --pre-border: rgba(0, 0, 0, 0.1);
+  --blockquote-border: rgba(0, 0, 0, 0.2);
+  --blockquote-text: #6B7280;
+  --table-border: rgba(0, 0, 0, 0.1);
+  --table-header-bg: rgba(0, 0, 0, 0.05);
+  --table-row-even: rgba(0, 0, 0, 0.02);
+  --strong-text: #111827;
+  --heading-text: #111827;
+  --hr-border: rgba(0, 0, 0, 0.1);
+  --select-icon: #1F2937;
+  --focus-ring: #D1D5DB;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode colors */
+    --bg-primary: #232323;
+    --bg-secondary: #0E0E0E;
+    --bg-surface: rgba(255, 255, 255, 0.05);
+    --text-primary: rgba(255, 255, 255, 0.75);
+    --text-secondary: rgba(255, 255, 255, 0.5);
+    --text-tertiary: rgba(255, 255, 255, 0.3);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --border-color-hover: rgba(255, 255, 255, 0.2);
+    --link-color: #60a5fa;
+    --link-color-underline: rgba(96, 165, 250, 0.3);
+    --link-color-hover: rgba(96, 165, 250, 0.8);
+    --code-bg: rgba(255, 255, 255, 0.1);
+    --code-text: rgba(255, 255, 255, 0.9);
+    --pre-bg: rgba(255, 255, 255, 0.05);
+    --pre-border: rgba(255, 255, 255, 0.1);
+    --blockquote-border: rgba(255, 255, 255, 0.2);
+    --blockquote-text: rgba(255, 255, 255, 0.6);
+    --table-border: rgba(255, 255, 255, 0.1);
+    --table-header-bg: rgba(255, 255, 255, 0.05);
+    --table-row-even: rgba(255, 255, 255, 0.02);
+    --strong-text: rgba(255, 255, 255, 0.95);
+    --heading-text: rgba(255, 255, 255, 0.95);
+    --hr-border: rgba(255, 255, 255, 0.1);
+    --select-icon: #FFFFFF;
+    --focus-ring: #444;
+  }
+}
+
 html,
 body {
   max-width: 100vw;
@@ -9,13 +70,19 @@ body {
 }
 
 body {
-  color: rgba(255, 255, 255, 0.75);
-  background: #1A1A1A;
+  color: var(--text-primary);
+  background: var(--bg-primary);
   font-family: 'SF Compact Text', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 16px;
   line-height: 20px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Ultra-smooth scrolling */
+* {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Custom scrollbar - hidden */
@@ -42,6 +109,22 @@ body {
   -ms-overflow-style: none;
 }
 
+/* Hide Next.js dev indicator on mobile */
+@media (max-width: 640px) {
+  #__next-build-watcher,
+  nextjs-portal,
+  [data-nextjs-dialog-overlay],
+  [data-nextjs-toast],
+  button[aria-label*="Open"],
+  button[aria-label*="Static"],
+  /* Hide Next.js floating dev toolbar */
+  [style*="position: fixed"][style*="bottom"][style*="right"],
+  [class*="__nextjs__container"],
+  [id*="__nextjs"] {
+    display: none !important;
+  }
+}
+
 /* Smooth animations */
 @keyframes fade-in {
   from {
@@ -65,7 +148,7 @@ textarea {
 
 /* Focus styles */
 textarea:focus-visible {
-  outline: 2px solid #444;
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 
@@ -83,15 +166,26 @@ button:focus-visible {
 /* Custom select styling */
 select {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
   padding-right: 2.5rem;
 }
 
+@media (prefers-color-scheme: light) {
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231F2937' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+  }
+}
+
 /* Custom prose styling for markdown content */
 .prose {
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text-primary);
   max-width: none;
   font-size: 16px;
   line-height: 20px;
@@ -107,7 +201,7 @@ select {
 }
 
 .prose strong {
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--strong-text);
   font-weight: 600;
 }
 
@@ -116,8 +210,8 @@ select {
 }
 
 .prose code {
-  color: rgba(255, 255, 255, 0.9);
-  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--code-text);
+  background-color: var(--code-bg);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 14px;
@@ -125,8 +219,8 @@ select {
 }
 
 .prose pre {
-  background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--pre-bg);
+  border: 1px solid var(--pre-border);
   border-radius: 8px;
   padding: 12px 16px;
   overflow-x: auto;
@@ -143,14 +237,14 @@ select {
 }
 
 .prose a {
-  color: #60a5fa;
+  color: var(--link-color);
   text-decoration: underline;
-  text-decoration-color: rgba(96, 165, 250, 0.3);
+  text-decoration-color: var(--link-color-underline);
   transition: text-decoration-color 0.2s;
 }
 
 .prose a:hover {
-  text-decoration-color: rgba(96, 165, 250, 0.8);
+  text-decoration-color: var(--link-color-hover);
 }
 
 /* Headings */
@@ -160,7 +254,7 @@ select {
 .prose h4,
 .prose h5,
 .prose h6 {
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--heading-text);
   font-weight: 600;
   margin-top: 20px;
   margin-bottom: 12px;
@@ -241,19 +335,19 @@ select {
 
 /* Blockquotes */
 .prose blockquote {
-  border-left: 3px solid rgba(255, 255, 255, 0.2);
+  border-left: 3px solid var(--blockquote-border);
   padding-left: 16px;
   margin-left: 0;
   margin-top: 12px;
   margin-bottom: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--blockquote-text);
   font-style: italic;
 }
 
 /* Horizontal rules */
 .prose hr {
   border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--hr-border);
   margin-top: 20px;
   margin-bottom: 20px;
 }
@@ -268,17 +362,17 @@ select {
 
 .prose th,
 .prose td {
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--table-border);
   padding: 8px 12px;
   text-align: left;
 }
 
 .prose th {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--table-header-bg);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--heading-text);
 }
 
 .prose tr:nth-child(even) {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--table-row-even);
 }

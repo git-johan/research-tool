@@ -2,6 +2,7 @@
 
 import { useState, FormEvent, KeyboardEvent, useRef, useEffect } from "react";
 import { useChat } from "@/context/ChatContext";
+import { SendArrowIcon, StopIcon } from "./icons";
 
 export function ChatInput() {
   const [input, setInput] = useState("");
@@ -43,9 +44,11 @@ export function ChatInput() {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Aa"
-          className="w-full min-h-[44px] bg-[#0E0E0E] px-[13px] py-[12px] pr-[52px] rounded-[20px] border-none font-normal text-[16px] leading-[20px] outline-none resize-none text-white placeholder:text-white placeholder:opacity-50"
+          className="w-full min-h-[44px] px-[13px] py-[12px] pr-[52px] rounded-[20px] border-none font-normal text-[16px] leading-[20px] outline-none resize-none"
           style={{
             fontFamily: 'SF Compact Text, SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif',
+            backgroundColor: 'var(--bg-secondary)',
+            color: 'var(--text-primary)',
             opacity: input.trim() ? 1 : 0.5,
             border: 'none',
             outline: 'none',
@@ -62,12 +65,10 @@ export function ChatInput() {
           <button
             type="submit"
             disabled={!input.trim()}
-            className="absolute right-[8px] w-[28px] h-[28px] rounded-full bg-white flex items-center justify-center disabled:opacity-30 transition-opacity"
-            style={{ top: '8px' }}
+            className="absolute right-[8px] w-[28px] h-[28px] rounded-full flex items-center justify-center disabled:opacity-30 transition-opacity"
+            style={{ top: '8px', backgroundColor: 'var(--text-primary)' }}
           >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M7 11L7 3M7 3L4 6M7 3L10 6" stroke="#0E0E0E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <SendArrowIcon />
           </button>
         )}
 
@@ -76,12 +77,10 @@ export function ChatInput() {
           <button
             type="button"
             disabled={true}
-            className="absolute right-[8px] w-[28px] h-[28px] rounded-full bg-white flex items-center justify-center opacity-30"
-            style={{ top: '8px' }}
+            className="absolute right-[8px] w-[28px] h-[28px] rounded-full flex items-center justify-center opacity-30"
+            style={{ top: '8px', backgroundColor: 'var(--text-primary)' }}
           >
-            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="8" height="8" fill="#0E0E0E"/>
-            </svg>
+            <StopIcon />
           </button>
         )}
       </div>

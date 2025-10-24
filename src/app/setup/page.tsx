@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { MarkdownPreview } from "@/components/MarkdownPreview";
+import { EditButton } from "@/components/EditButton";
 
 interface Persona {
   _id: string;
@@ -96,14 +98,14 @@ export default function SetupPage() {
   };
 
   return (
-    <div className="min-h-screen p-8">
+    <div className="min-h-screen p-4 sm:p-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <h1 className="text-3xl font-bold">Persona Setup</h1>
           <Link
             href="/"
-            className="bg-[#FFFFFF] bg-opacity-50 rounded-full px-[13px] pt-[4px] pb-[6px] text-[16px] leading-[20px] text-[#1A1A1A] transition-opacity hover:opacity-80"
+            className="bg-[#FFFFFF] bg-opacity-50 rounded-full px-[13px] pt-[4px] pb-[6px] text-[16px] leading-[20px] text-[#1A1A1A] transition-opacity hover:opacity-80 w-full sm:w-auto text-center"
             style={{ fontFamily: 'SF Compact Text, SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif' }}
           >
             Back to Chat
@@ -111,39 +113,51 @@ export default function SetupPage() {
         </div>
 
         {/* Add Persona Form */}
-        <div className="bg-[#1A1A1A] rounded-lg p-6 mb-8">
+        <div className="rounded-lg p-4 sm:p-6 mb-6 sm:mb-8" style={{ backgroundColor: 'var(--bg-secondary)' }}>
           <h2 className="text-xl font-semibold mb-4">Add New Persona</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Name</label>
+              <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Sarah Johnson"
-                className="w-full bg-[#0E0E0E] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-600"
+                className="w-full rounded-lg px-4 py-3 focus:outline-none focus:ring-2"
+                style={{
+                  backgroundColor: 'var(--bg-surface)',
+                  color: 'var(--text-primary)'
+                }}
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Role</label>
+              <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Role</label>
               <input
                 type="text"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 placeholder="e.g., Product Manager at Tech Startup"
-                className="w-full bg-[#0E0E0E] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-600"
+                className="w-full rounded-lg px-4 py-3 focus:outline-none focus:ring-2"
+                style={{
+                  backgroundColor: 'var(--bg-surface)',
+                  color: 'var(--text-primary)'
+                }}
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-400 mb-2">Interview Transcript / Notes</label>
+              <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>Interview Transcript / Notes</label>
               <textarea
                 value={transcriptData}
                 onChange={(e) => setTranscriptData(e.target.value)}
                 placeholder="Paste interview transcript, notes, or any context about this person..."
                 rows={12}
-                className="w-full bg-[#0E0E0E] rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-600 resize-y"
+                className="w-full rounded-lg px-4 py-3 focus:outline-none focus:ring-2 resize-y"
+                style={{
+                  backgroundColor: 'var(--bg-surface)',
+                  color: 'var(--text-primary)'
+                }}
               />
             </div>
 
@@ -161,29 +175,34 @@ export default function SetupPage() {
         <div>
           <h2 className="text-xl font-semibold mb-4">Existing Personas ({personas.length})</h2>
           {isLoading ? (
-            <div className="text-gray-400">Loading...</div>
+            <div style={{ color: 'var(--text-secondary)' }}>Loading...</div>
           ) : personas.length === 0 ? (
-            <div className="text-gray-400 bg-[#1A1A1A] rounded-lg p-6">
+            <div className="rounded-lg p-4 sm:p-6" style={{ color: 'var(--text-secondary)', backgroundColor: 'var(--bg-secondary)' }}>
               No personas yet. Add your first persona above to get started.
             </div>
           ) : (
             <div className="space-y-4">
               {personas.map((persona) => (
-                <div key={persona._id} className="bg-[#1A1A1A] rounded-lg p-6">
+                <div key={persona._id} className="rounded-lg p-4 sm:p-6" style={{ backgroundColor: 'var(--bg-secondary)' }}>
                   <div className="flex items-start justify-between mb-3">
-                    <div>
+                    <div className="flex-1">
                       <h3 className="text-lg font-semibold">{persona.name}</h3>
-                      <p className="text-gray-400 text-sm">{persona.role}</p>
+                      <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{persona.role}</p>
                     </div>
-                    <button
-                      onClick={() => handleDelete(persona._id)}
-                      className="text-red-400 hover:text-red-300 text-sm"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <EditButton href={`/personas/${persona._id}`} />
+                      <button
+                        onClick={() => handleDelete(persona._id)}
+                        className="text-red-400 hover:text-red-300 text-sm px-2"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-gray-500 text-sm">
-                    <div className="line-clamp-3">{persona.transcriptData}</div>
+                  <div className="text-sm overflow-hidden" style={{ color: 'var(--text-tertiary)' }}>
+                    <div className="line-clamp-3">
+                      <MarkdownPreview content={persona.transcriptData} />
+                    </div>
                   </div>
                 </div>
               ))}
