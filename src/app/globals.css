@@ -1,0 +1,284 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+body {
+  color: rgba(255, 255, 255, 0.75);
+  background: #1A1A1A;
+  font-family: 'SF Compact Text', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16px;
+  line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar - hidden */
+::-webkit-scrollbar {
+  width: 0px;
+  display: none;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: none;
+}
+
+/* For IE and Edge */
+* {
+  -ms-overflow-style: none;
+}
+
+/* Smooth animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Textarea auto-resize */
+textarea {
+  field-sizing: content;
+}
+
+/* Focus styles */
+textarea:focus-visible {
+  outline: 2px solid #444;
+  outline-offset: 2px;
+}
+
+button {
+  outline: none;
+  border: none;
+}
+
+button:focus,
+button:focus-visible {
+  outline: none;
+  border: none;
+}
+
+/* Custom select styling */
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+/* Custom prose styling for markdown content */
+.prose {
+  color: rgba(255, 255, 255, 0.75);
+  max-width: none;
+  font-size: 16px;
+  line-height: 20px;
+}
+
+.prose p {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.prose strong {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+}
+
+.prose em {
+  font-style: italic;
+}
+
+.prose code {
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.prose pre {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.prose a {
+  color: #60a5fa;
+  text-decoration: underline;
+  text-decoration-color: rgba(96, 165, 250, 0.3);
+  transition: text-decoration-color 0.2s;
+}
+
+.prose a:hover {
+  text-decoration-color: rgba(96, 165, 250, 0.8);
+}
+
+/* Headings */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  color: rgba(255, 255, 255, 0.95);
+  font-weight: 600;
+  margin-top: 20px;
+  margin-bottom: 12px;
+}
+
+.prose h1 {
+  font-size: 24px;
+  line-height: 28px;
+}
+
+.prose h2 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+.prose h3 {
+  font-size: 18px;
+  line-height: 22px;
+}
+
+.prose h4,
+.prose h5,
+.prose h6 {
+  font-size: 16px;
+  line-height: 20px;
+}
+
+/* Lists - properly nested bullets */
+.prose ul,
+.prose ol {
+  margin-top: 8px;
+  margin-bottom: 12px;
+  padding-left: 24px;
+}
+
+.prose ul {
+  list-style-type: disc;
+}
+
+.prose ol {
+  list-style-type: decimal;
+}
+
+.prose li {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  padding-left: 4px;
+}
+
+/* Nested lists */
+.prose ul ul,
+.prose ol ul {
+  list-style-type: circle;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.prose ul ul ul,
+.prose ol ul ul,
+.prose ol ol ul,
+.prose ul ol ul {
+  list-style-type: square;
+}
+
+.prose ol ol,
+.prose ul ol {
+  list-style-type: lower-alpha;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+.prose ol ol ol,
+.prose ul ol ol,
+.prose ul ul ol,
+.prose ol ul ol {
+  list-style-type: lower-roman;
+}
+
+/* Blockquotes */
+.prose blockquote {
+  border-left: 3px solid rgba(255, 255, 255, 0.2);
+  padding-left: 16px;
+  margin-left: 0;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: italic;
+}
+
+/* Horizontal rules */
+.prose hr {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+/* Tables */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+.prose th,
+.prose td {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.prose th {
+  background-color: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.prose tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.02);
+}
