@@ -49,7 +49,10 @@ export function PersonaSelector({
           "SF Compact Text, SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif",
         color: "var(--text-primary)",
         backgroundPosition: "right 0.25rem center",
+        WebkitFontSmoothing: "antialiased",
+        MozOsxFontSmoothing: "grayscale",
       }}
+      data-safari-fix="true"
     >
       <option value="">Select Persona</option>
       {personas.length >= 2 && (

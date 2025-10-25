@@ -60,7 +60,7 @@ function ChatInterface() {
 
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto w-full sm:max-w-[900px] relative">
-        <div className="px-4 md:px-8 pt-6 pb-2">
+        <div className="pl-2 pr-3 md:pl-4 md:pr-5 pt-6 pb-2">
           {/* Show placeholder for empty group chat */}
           {selectedPersonaId === "GROUP" && messages.length === 0 && !isLoading && !isLoadingMessages && (
             <div className="flex items-center justify-center h-full">

@@ -181,7 +181,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
             switch (event.type) {
               case "typing_start":
-                console.log("🟢 typing_start received:", eventData.personaName);
                 if (eventData.personaId) {
                   flushSync(() => {
                     setTypingPersonas((prev) => {
@@ -332,7 +331,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           },
           enableHeartbeat: true,
           heartbeatInterval: 15000, // 15 seconds (reduced from 30)
-          debug: true, // Enable debugging to track lost events
+          debug: false, // Debugging completed
         });
       });
     },
