@@ -12,6 +12,8 @@ interface Persona {
   role: string;
   transcriptData: string;
   color: string;
+  avatarImage?: string;
+  language?: string;
   createdAt: string;
 }
 
@@ -25,6 +27,8 @@ export default function SetupPage() {
   const [role, setRole] = useState("");
   const [transcriptData, setTranscriptData] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
+  const [avatarImage, setAvatarImage] = useState<string>("");
+  const [language, setLanguage] = useState("");
 
   // Available colors for personas
   const availableColors = [
@@ -59,6 +63,29 @@ export default function SetupPage() {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Please select an image file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image size must be less than 5MB");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setAvatarImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -72,7 +99,14 @@ export default function SetupPage() {
       const response = await fetch("/api/personas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, role, transcriptData, color: selectedColor || undefined }),
+        body: JSON.stringify({
+          name,
+          role,
+          transcriptData,
+          color: selectedColor || undefined,
+          avatarImage: avatarImage || undefined,
+          language: language || undefined
+        }),
       });
 
       if (response.ok) {
@@ -81,6 +115,8 @@ export default function SetupPage() {
         setRole("");
         setTranscriptData("");
         setSelectedColor("");
+        setAvatarImage("");
+        setLanguage("");
         // Reload personas
         await loadPersonas();
       } else {
@@ -166,6 +202,26 @@ export default function SetupPage() {
 
             <div>
               <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Language (Optional)
+              </label>
+              <input
+                type="text"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                placeholder="en, no, es, fr, etc."
+                className="w-full rounded-lg px-4 py-3 focus:outline-none focus:ring-2"
+                style={{
+                  backgroundColor: 'var(--bg-surface)',
+                  color: 'var(--text-primary)'
+                }}
+              />
+              <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                Language code for responses. Leave blank for English. Examples: no (Norwegian), es (Spanish), fr (French)
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
                 Avatar Color {selectedColor && "(Optional - auto-generated if not selected)"}
               </label>
               <div className="flex items-center gap-4">
@@ -208,6 +264,47 @@ export default function SetupPage() {
                       color={selectedColor || "#9CA3AF"}
                       size="medium"
                     />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+                Avatar Image (Optional)
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="w-full text-sm"
+                    style={{ color: 'var(--text-primary)' }}
+                  />
+                  <p className="text-xs mt-1" style={{ color: 'var(--text-tertiary)' }}>
+                    Max 5MB. If no image is uploaded, avatar will show initials with selected color.
+                  </p>
+                </div>
+                {avatarImage && (
+                  <div className="flex items-center gap-2">
+                    <PersonaAvatar
+                      name={name || "?"}
+                      color={selectedColor || "#9CA3AF"}
+                      avatarImage={avatarImage}
+                      size="large"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setAvatarImage("")}
+                      className="text-xs px-2 py-1 rounded"
+                      style={{
+                        color: 'var(--text-secondary)',
+                        backgroundColor: 'var(--bg-surface)'
+                      }}
+                    >
+                      Remove
+                    </button>
                   </div>
                 )}
               </div>

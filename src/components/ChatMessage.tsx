@@ -9,9 +9,10 @@ interface ChatMessageProps {
   showHeader?: boolean;
   personaName?: string;
   personaColor?: string;
+  personaAvatarImage?: string;
 }
 
-export function ChatMessage({ message, showHeader = true, personaName, personaColor }: ChatMessageProps) {
+export function ChatMessage({ message, showHeader = true, personaName, personaColor, personaAvatarImage }: ChatMessageProps) {
   const isUser = message.role === "user";
   // Use message.personaName (from group chat) or fallback to passed personaName
   const displayName = message.personaName || personaName;
@@ -26,7 +27,12 @@ export function ChatMessage({ message, showHeader = true, personaName, personaCo
         <div className="flex gap-3 items-start">
           {/* Show avatar for group chat messages */}
           {message.personaName && personaColor && (
-            <PersonaAvatar name={message.personaName} color={personaColor} size="medium" />
+            <PersonaAvatar
+              name={message.personaName}
+              color={personaColor}
+              avatarImage={personaAvatarImage}
+              size="medium"
+            />
           )}
           <div className="flex flex-col">
             {message.personaName && (

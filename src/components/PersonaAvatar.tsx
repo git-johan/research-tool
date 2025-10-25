@@ -1,10 +1,11 @@
 interface PersonaAvatarProps {
   name: string;
   color: string;
+  avatarImage?: string;
   size?: "small" | "medium" | "large";
 }
 
-export function PersonaAvatar({ name, color, size = "medium" }: PersonaAvatarProps) {
+export function PersonaAvatar({ name, color, avatarImage, size = "medium" }: PersonaAvatarProps) {
   // Get initials from first and last name
   const getInitials = (fullName: string) => {
     const nameParts = fullName.trim().split(/\s+/);
@@ -24,6 +25,18 @@ export function PersonaAvatar({ name, color, size = "medium" }: PersonaAvatarPro
     medium: "w-8 h-8 text-sm",
     large: "w-12 h-12 text-lg",
   };
+
+  if (avatarImage) {
+    return (
+      <div className={`${sizeClasses[size]} rounded-full overflow-hidden flex-shrink-0`}>
+        <img
+          src={avatarImage}
+          alt={`${name}'s avatar`}
+          className="w-full h-full object-cover"
+        />
+      </div>
+    );
+  }
 
   return (
     <div

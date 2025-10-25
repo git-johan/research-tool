@@ -25,8 +25,8 @@ function ChatInterface() {
   } = useChat();
 
 
-  // Auto-scroll to bottom when new messages arrive
-  const messagesEndRef = useScrollToBottom([messages]);
+  // Auto-scroll to bottom when new messages arrive or typing indicators change
+  const messagesEndRef = useScrollToBottom([messages, typingPersonas]);
 
   // Handle initial greeting
   useInitialGreeting({
@@ -93,6 +93,7 @@ function ChatInterface() {
                 showHeader={showHeader}
                 personaName={messagePersona?.name}
                 personaColor={messagePersona?.color}
+                personaAvatarImage={messagePersona?.avatarImage}
               />
             );
           })}
@@ -103,6 +104,7 @@ function ChatInterface() {
               key={persona.personaId}
               personaName={persona.personaName}
               personaColor={persona.personaColor}
+              personaAvatarImage={persona.personaAvatarImage}
             />
           ))}
 

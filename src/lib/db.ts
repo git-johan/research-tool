@@ -192,6 +192,7 @@ export interface PersonaDoc {
   transcriptData: string;
   color: string; // Hex color for avatar background
   avatarImage?: string; // Base64 encoded image data (optional)
+  language?: string; // Language code (e.g., "en", "no", "es") - defaults to English if not specified
   createdAt: Date;
 }
 
@@ -217,7 +218,8 @@ export async function createPersona(
   role: string,
   transcriptData: string,
   color?: string,
-  avatarImage?: string
+  avatarImage?: string,
+  language?: string
 ): Promise<PersonaDoc> {
   const db = await getDb();
   const newPersona: PersonaDoc = {
@@ -227,6 +229,7 @@ export async function createPersona(
     transcriptData,
     color: color || generatePersonaColor(),
     ...(avatarImage && { avatarImage }),
+    ...(language && { language }),
     createdAt: new Date(),
   };
   await db.collection<PersonaDoc>("personas").insertOne(newPersona);
@@ -264,12 +267,36 @@ export async function updatePersona(
   name: string,
   role: string,
   transcriptData: string,
-  color?: string
+  color?: string,
+  avatarImage?: string | null,
+  language?: string | null
 ): Promise<PersonaDoc | null> {
   const db = await getDb();
   const updateFields: Partial<PersonaDoc> = { name, role, transcriptData };
   if (color) {
     updateFields.color = color;
+  }
+  if (avatarImage !== undefined) {
+    if (avatarImage === null) {
+      // Remove avatar image if explicitly set to null
+      await db.collection<PersonaDoc>("personas").updateOne(
+        { _id: personaId },
+        { $unset: { avatarImage: "" } }
+      );
+    } else {
+      updateFields.avatarImage = avatarImage;
+    }
+  }
+  if (language !== undefined) {
+    if (language === null || language === "") {
+      // Remove language if explicitly set to null or empty string
+      await db.collection<PersonaDoc>("personas").updateOne(
+        { _id: personaId },
+        { $unset: { language: "" } }
+      );
+    } else {
+      updateFields.language = language;
+    }
   }
   const result = await db.collection<PersonaDoc>("personas").findOneAndUpdate(
     { _id: personaId },

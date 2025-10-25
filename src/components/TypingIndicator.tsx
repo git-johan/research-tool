@@ -5,14 +5,20 @@ import { PersonaAvatar } from "./PersonaAvatar";
 interface TypingIndicatorProps {
   personaName?: string;
   personaColor?: string;
+  personaAvatarImage?: string;
 }
 
-export function TypingIndicator({ personaName, personaColor }: TypingIndicatorProps) {
+export function TypingIndicator({ personaName, personaColor, personaAvatarImage }: TypingIndicatorProps) {
   return (
     <div className="animate-fade-in mb-4 mt-6 first:mt-0">
       <div className="flex items-center gap-3">
         {personaName && personaColor && (
-          <PersonaAvatar name={personaName} color={personaColor} size="small" />
+          <PersonaAvatar
+            name={personaName}
+            color={personaColor}
+            avatarImage={personaAvatarImage}
+            size="small"
+          />
         )}
         <div className="flex items-center gap-2">
           {personaName && (

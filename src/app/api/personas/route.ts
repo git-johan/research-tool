@@ -13,13 +13,13 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, role, transcriptData, color } = await req.json();
+    const { name, role, transcriptData, color, avatarImage, language } = await req.json();
 
     if (!name || !role || !transcriptData) {
       return new Response("Missing required fields", { status: 400 });
     }
 
-    const persona = await createPersona(name, role, transcriptData, color);
+    const persona = await createPersona(name, role, transcriptData, color, avatarImage, language);
     return Response.json({ persona });
   } catch (error) {
     console.error("Failed to create persona:", error);
@@ -29,13 +29,13 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const { personaId, name, role, transcriptData, color } = await req.json();
+    const { personaId, name, role, transcriptData, color, avatarImage, language } = await req.json();
 
     if (!personaId || !name || !role || !transcriptData) {
       return new Response("Missing required fields", { status: 400 });
     }
 
-    const updatedPersona = await updatePersona(personaId, name, role, transcriptData, color);
+    const updatedPersona = await updatePersona(personaId, name, role, transcriptData, color, avatarImage, language);
 
     if (!updatedPersona) {
       return new Response("Persona not found", { status: 404 });
