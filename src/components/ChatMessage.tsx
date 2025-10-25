@@ -3,6 +3,8 @@
 import { Message } from "@/context/ChatContext";
 import { MarkdownPreview } from "./MarkdownPreview";
 import { PersonaAvatar } from "./PersonaAvatar";
+import { generatePersonaBubbleStyles } from "@/lib/colorUtils";
+import { useTheme } from "@/hooks/useTheme";
 
 interface ChatMessageProps {
   message: Message;
@@ -14,8 +16,12 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message, showHeader = true, personaName, personaColor, personaAvatarImage }: ChatMessageProps) {
   const isUser = message.role === "user";
+  const theme = useTheme();
   // Use message.personaName (from group chat) or fallback to passed personaName
   const displayName = message.personaName || personaName;
+
+  // Generate bubble styles for persona messages with theme awareness
+  const bubbleStyles = personaColor ? generatePersonaBubbleStyles(personaColor, theme) : null;
 
   return (
     <div className={`animate-fade-in ${showHeader ? "mb-4 mt-6 first:mt-0" : "mb-2"} ${isUser ? "flex justify-end" : ""}`}>
@@ -40,10 +46,18 @@ export function ChatMessage({ message, showHeader = true, personaName, personaCo
                 {message.personaName}
               </div>
             )}
-            <MarkdownPreview
-              content={message.content}
-              className="max-w-[calc(100vw-2rem)] sm:max-w-[650px]"
-            />
+            <div
+              className="px-3 sm:px-[17px] py-3 sm:pt-[14px] sm:pb-[17px] rounded-lg max-w-[calc(100vw-2rem)] sm:max-w-[650px]"
+              style={{
+                backgroundColor: bubbleStyles?.backgroundColor || 'var(--bg-secondary)',
+                color: bubbleStyles?.textColor || 'var(--text-primary)'
+              }}
+            >
+              <MarkdownPreview
+                content={message.content}
+                className="text-inherit"
+              />
+            </div>
           </div>
         </div>
       )}
