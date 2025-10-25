@@ -3,11 +3,17 @@
 import { useState, FormEvent, KeyboardEvent, useRef, useEffect } from "react";
 import { useChat } from "@/context/ChatContext";
 import { SendArrowIcon, StopIcon } from "./icons";
+import { useTheme } from "@/hooks/useTheme";
+import { generatePersonaBubbleStyles } from "@/lib/colorUtils";
 
 export function ChatInput() {
   const [input, setInput] = useState("");
   const { sendMessage, isLoading } = useChat();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const theme = useTheme();
+
+  // Use the same background color as persona bubbles
+  const bubbleStyles = generatePersonaBubbleStyles("", theme);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -47,8 +53,8 @@ export function ChatInput() {
           className="w-full min-h-[44px] px-[13px] py-[12px] pr-[52px] rounded-[20px] border-none font-normal text-[16px] leading-[20px] outline-none resize-none"
           style={{
             fontFamily: 'SF Compact Text, SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif',
-            backgroundColor: 'var(--bg-secondary)',
-            color: 'var(--text-primary)',
+            backgroundColor: bubbleStyles.backgroundColor,
+            color: bubbleStyles.textColor,
             opacity: input.trim() ? 1 : 0.5,
             border: 'none',
             outline: 'none',
@@ -66,7 +72,7 @@ export function ChatInput() {
             type="submit"
             disabled={!input.trim()}
             className="absolute right-[8px] w-[28px] h-[28px] rounded-full flex items-center justify-center disabled:opacity-30 transition-opacity"
-            style={{ top: '8px', backgroundColor: 'var(--text-primary)' }}
+            style={{ top: '8px', backgroundColor: '#007AFF' }}
           >
             <SendArrowIcon />
           </button>
@@ -78,7 +84,7 @@ export function ChatInput() {
             type="button"
             disabled={true}
             className="absolute right-[8px] w-[28px] h-[28px] rounded-full flex items-center justify-center opacity-30"
-            style={{ top: '8px', backgroundColor: 'var(--text-primary)' }}
+            style={{ top: '8px', backgroundColor: '#007AFF' }}
           >
             <StopIcon />
           </button>

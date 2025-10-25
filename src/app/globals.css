@@ -34,7 +34,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     /* Dark mode colors */
-    --bg-primary: #232323;
+    --bg-primary: #121212;
     --bg-secondary: #0E0E0E;
     --bg-surface: rgba(255, 255, 255, 0.05);
     --text-primary: rgba(255, 255, 255, 0.75);
@@ -180,6 +180,48 @@ select {
 @media (prefers-color-scheme: dark) {
   select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+  }
+}
+
+/* Safari-specific fixes for dropdown option font rendering */
+/* Target Safari specifically using a combination of WebKit properties */
+@supports (-webkit-appearance: none) {
+  @media screen and (-webkit-min-device-pixel-ratio: 0) {
+    select option {
+      font-family: 'SF Compact Text', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      -webkit-font-smoothing: antialiased !important;
+      -moz-osx-font-smoothing: grayscale !important;
+      color: var(--text-primary) !important;
+      background-color: var(--bg-primary) !important;
+      padding: 8px 12px !important;
+      line-height: 20px !important;
+    }
+
+    /* Ensure proper styling for hover/focus states in Safari */
+    select option:hover {
+      background-color: var(--bg-secondary) !important;
+    }
+
+    select option:checked {
+      background-color: var(--bg-secondary) !important;
+      font-weight: 600 !important;
+    }
+  }
+}
+
+/* Additional Safari-specific select styling */
+@supports (-webkit-appearance: none) {
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* Ensure font inheritance for the select element itself */
+    font-family: 'SF Compact Text', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 600;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
