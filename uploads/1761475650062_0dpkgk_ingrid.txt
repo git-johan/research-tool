@@ -1,0 +1,36 @@
+33 year old construction project manager
+
+### 1. **Does the user get enough information to trust the estimated future value?**
+
+- **Insights:**
+  - The user appreciates knowing the estimated resale value as it provides a sense of security, especially when purchasing high-value items.
+  - Skepticism arises around how the estimate is calculated. The user expressed interest in understanding the basis of the valuation (e.g., sales history, normal use assumptions).
+  - They believe that seeing the methodology or criteria for the estimate (e.g., "based on normal wear and tear") enhances trust.
+  - The user wants clarity on what "normal use" means for the product category, as expectations might differ between casual use and outdoor activities.
+
+---
+
+### 2. **Does the user get enough information to trust the comparisons to other products in the same category?**
+
+- **Insights:**
+  - The user did not explicitly focus on comparisons between products in the same category, but they valued transparency in presenting why a product holds a certain resale value.
+  - They indicated that contextual information, such as material quality or brand reputation, could support category comparisons indirectly.
+
+---
+
+### 3. **Does the user get enough information to trust the scores?**
+
+- **Insights:**
+  - The user mentioned that scores (e.g., "8/10 resale value") feel less tangible compared to specific resale value ranges. Scores alone may seem abstract and less actionable.
+  - Trust in scores improves if accompanied by clear explanations or data supporting the rating, such as how long the item remains popular or material longevity.
+
+---
+
+### 4. **How does the feature in general impact the user's purchase decision?**
+
+- **Insights:**
+  - The resale value feature helps mitigate the perceived financial risk of purchasing an expensive product, making it easier to justify the expense.
+  - It reinforces the user’s confidence in the purchase by adding a layer of perceived value beyond initial use.
+  - Users who already prioritize long-term use or durable products find the feature less critical but still see it as a helpful tool for reassurance.
+  - While the feature does not deter users from their preference for specific brands or products, it strengthens their willingness to spend more on a product with proven resale potential.
+  - The user mentioned that if the product integrates seamlessly into their existing tools or apps, it could enhance their overall shopping experience.

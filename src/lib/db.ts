@@ -310,3 +310,100 @@ export async function deletePersona(personaId: string): Promise<void> {
   const db = await getDb();
   await db.collection<PersonaDoc>("personas").deleteOne({ _id: personaId });
 }
+
+// Generic document operations for any document type
+export interface DocumentDoc {
+  _id: string; // UUID
+  filename: string;
+  originalPath: string;
+  fileSizeBytes: number;
+  encoding: string;
+  mimeType: string;
+  uploadedAt: Date;
+  processedAt?: Date;
+  chunkCount?: number;
+  status: "uploading" | "ready_for_processing" | "processing_embeddings" | "completed" | "failed";
+  error?: string; // If processing failed
+  clientId: string; // Associate with client browser
+  documentType?: string; // Optional categorization (e.g., "interview", "research", "report")
+  tags?: string[]; // Optional tags for organization
+  metadata: {
+    textPreview: string; // First 200 chars for display
+    wordCount?: number;
+    lineCount?: number;
+  };
+}
+
+export async function createDocument(
+  filename: string,
+  originalPath: string,
+  fileSizeBytes: number,
+  encoding: string,
+  mimeType: string,
+  clientId: string,
+  textPreview: string,
+  documentType?: string,
+  tags?: string[]
+): Promise<DocumentDoc> {
+  const db = await getDb();
+  const newDocument: DocumentDoc = {
+    _id: crypto.randomUUID(),
+    filename,
+    originalPath,
+    fileSizeBytes,
+    encoding,
+    mimeType,
+    uploadedAt: new Date(),
+    status: "uploading",
+    clientId,
+    ...(documentType && { documentType }),
+    ...(tags && { tags }),
+    metadata: {
+      textPreview
+    }
+  };
+  await db.collection<DocumentDoc>("documents").insertOne(newDocument);
+  return newDocument;
+}
+
+export async function updateDocumentStatus(
+  documentId: string,
+  status: DocumentDoc["status"],
+  additionalFields?: {
+    chunkCount?: number;
+    error?: string;
+    processedAt?: Date;
+  }
+): Promise<void> {
+  const db = await getDb();
+  const updateFields: Partial<DocumentDoc> = {
+    status,
+    ...(status === "completed" && { processedAt: new Date() }),
+    ...(additionalFields?.chunkCount !== undefined && { chunkCount: additionalFields.chunkCount }),
+    ...(additionalFields?.error && { error: additionalFields.error }),
+    ...(additionalFields?.processedAt && { processedAt: additionalFields.processedAt })
+  };
+
+  await db.collection<DocumentDoc>("documents").updateOne(
+    { _id: documentId },
+    { $set: updateFields }
+  );
+}
+
+export async function getDocument(documentId: string): Promise<DocumentDoc | null> {
+  const db = await getDb();
+  return await db.collection<DocumentDoc>("documents").findOne({ _id: documentId });
+}
+
+export async function getDocumentsByClient(clientId: string): Promise<DocumentDoc[]> {
+  const db = await getDb();
+  return await db.collection<DocumentDoc>("documents")
+    .find({ clientId })
+    .sort({ uploadedAt: -1 })
+    .toArray();
+}
+
+export async function deleteDocument(documentId: string): Promise<void> {
+  const db = await getDb();
+  await db.collection<DocumentDoc>("documents").deleteOne({ _id: documentId });
+}

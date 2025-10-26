@@ -5,6 +5,7 @@ import { PersonaSelector } from "./PersonaSelector";
 import { ClearButton } from "./ClearButton";
 import { ShareButton } from "./ShareButton";
 import { SettingsButton } from "./SettingsButton";
+import { SearchButton } from "./SearchButton";
 
 interface ChatHeaderProps {
   personas: Persona[];
@@ -47,6 +48,7 @@ export function ChatHeader({
 
       {/* Right - Action Icons */}
       <div className="flex items-center gap-1">
+        <SearchButton />
         {hasMessages && (
           <>
             <ClearButton onClick={onClearMessages} />

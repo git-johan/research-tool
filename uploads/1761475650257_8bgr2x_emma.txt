@@ -1,0 +1,38 @@
+33 year old documentary film maker
+
+### 1. **Does the user get enough information to trust the estimated future value?**
+
+- **Insights:**
+  - The user finds the resale value information valuable as it offers a "safety net" and reassurance about the product's long-term worth.
+  - Trust in the estimated value is contingent on understanding where the data comes from, with the user asking for clarity on whether the data is based on actual transactions (e.g., on Finn.no) or broader category averages.
+  - The user suggests that seeing long-term resale value trends (e.g., over ten years) would enhance trust and provide additional context.
+
+---
+
+### 2. **Does the user get enough information to trust the comparisons to other products in the same category?**
+
+- **Insights:**
+  - The user appreciates knowing how the product compares to others in its category but questions how specific the comparison is to the exact product.
+  - The credibility of the comparison depends on whether the data is granular and specific (e.g., exact resale prices for the same jacket) or generalized across a category.
+  - Comparisons are seen as more useful when presented with concrete data and explanations of how the scores are derived.
+
+---
+
+### 3. **Does the user get enough information to trust the scores?**
+
+- **Insights:**
+  - Scores are perceived as more credible when accompanied by clear explanations or additional data points, such as popularity or time-to-sell statistics.
+  - Vaguer descriptors (e.g., "excellent resale value") are less compelling than precise resale price ranges, which the user finds more actionable.
+  - Users unfamiliar with the scoring system or the app might require additional validation or context before fully trusting the scores.
+
+---
+
+### 4. **How does the feature in general impact the user's purchase decision?**
+
+- **Insights:**
+  - The feature positively impacts the purchase decision by lowering the perceived financial risk of buying an expensive product. It reframes the purchase as a more calculated investment rather than a sunk cost.
+  - While the user might not initially plan to resell a jacket, the feature influences their perception of value and provides reassurance that they could recoup part of the cost if needed.
+  - The feature's impact is greater for items the user anticipates upgrading or replacing (e.g., cameras) compared to items intended for long-term use (e.g., jackets).
+  - The presence of this feature in a trusted retailer's store would increase the likelihood of the user purchasing from that store.
+
+---
