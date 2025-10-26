@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { Logger } from "@/lib/logger";
 import { getDb } from "@/lib/db";
 import { processAndStoreDocument } from "@/lib/document-processing";
-import { processWebContent } from "../../../../scripts/web-content-processor";
+import { processUnifiedContentWithAI } from "@/lib/content-type-router";
 
 interface WebDocumentResponse {
   success: boolean;
@@ -105,8 +105,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Process web content using our web processor
-    const processedContent = await processWebContent(url);
+    // Process content using unified router (handles both PDF and HTML)
+    const processedContent = await processUnifiedContentWithAI(url);
 
     // Create document record in database (db and collection already initialized above)
 
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
       originalPath: url, // Store URL instead of file path
       fileSizeBytes: processedContent.content.length,
       encoding: "utf-8",
-      mimeType: "text/html",
+      mimeType: processedContent.contentType === 'pdf' ? "application/pdf" : "text/html",
       uploadedAt: new Date(),
       sourceType: "web" as const,
       originalUrl: url,
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
       status: "processing_embeddings" as const,
       clientId: "web-processor", // Default client for web-processed documents
       documentType: processedContent.metadata.content_type,
-      // Enhanced metadata from GPT-5 processing
+      // Enhanced metadata from AI processing
       metadata: {
         textPreview: processedContent.content.substring(0, 200),
         title: processedContent.title,
@@ -136,7 +136,18 @@ export async function POST(req: NextRequest) {
         key_concepts: processedContent.metadata.key_concepts,
         question_types: processedContent.metadata.question_types,
         word_count: processedContent.metadata.word_count,
-        ai_processing_time_ms: processedContent.metadata.processing_time_ms
+        ai_processing_time_ms: processedContent.metadata.processing_time_ms,
+        // Content type specific metadata
+        source_content_type: processedContent.contentType,
+        // PDF-specific metadata (when applicable)
+        ...(processedContent.contentType === 'pdf' && {
+          total_pages: processedContent.metadata.totalPages,
+          pdf_author: processedContent.metadata.author,
+          pdf_creator: processedContent.metadata.creator,
+          pdf_producer: processedContent.metadata.producer,
+          pdf_creation_date: processedContent.metadata.creationDate,
+          pdf_modification_date: processedContent.metadata.modificationDate,
+        })
       }
     };
 

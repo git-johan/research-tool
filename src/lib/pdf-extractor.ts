@@ -4,7 +4,7 @@
  * Provides structured output similar to web content processor
  */
 
-import pdf from 'pdf-parse';
+import { PDFParse } from 'pdf-parse';
 
 export interface PDFMetadata {
   title?: string;
@@ -41,28 +41,28 @@ export async function extractPDFContent(pdfBuffer: Buffer): Promise<PDFExtractio
     console.log(`📄 Extracting content from PDF (${pdfBuffer.length} bytes)`);
 
     // Parse PDF with pdf-parse
-    const data = await pdf(pdfBuffer, {
-      // Options for better text extraction
-      normalizeWhitespace: true,
-      disableCombineTextItems: false,
-    });
+    const parser = new PDFParse({ data: pdfBuffer });
+    const data = await parser.getText();
 
-    console.log(`✅ PDF parsed successfully: ${data.numpages} pages, ${data.text.length} characters`);
+    console.log(`✅ PDF parsed successfully: ${data.totalPages || 'unknown'} pages, ${data.text.length} characters`);
+
+    // Get additional info if available
+    const infoResult = await parser.getInfo().catch(() => ({ info: {}, totalPages: 1 }));
 
     // Extract metadata
     const metadata: PDFMetadata = {
-      title: data.info?.Title || undefined,
-      author: data.info?.Author || undefined,
-      subject: data.info?.Subject || undefined,
-      creator: data.info?.Creator || undefined,
-      producer: data.info?.Producer || undefined,
-      creationDate: data.info?.CreationDate ? new Date(data.info.CreationDate) : undefined,
-      modificationDate: data.info?.ModDate ? new Date(data.info.ModDate) : undefined,
-      totalPages: data.numpages,
+      title: infoResult.info?.Title || undefined,
+      author: infoResult.info?.Author || undefined,
+      subject: infoResult.info?.Subject || undefined,
+      creator: infoResult.info?.Creator || undefined,
+      producer: infoResult.info?.Producer || undefined,
+      creationDate: infoResult.info?.CreationDate ? tryParseDate(infoResult.info.CreationDate) : undefined,
+      modificationDate: infoResult.info?.ModDate ? tryParseDate(infoResult.info.ModDate) : undefined,
+      totalPages: data.totalPages || infoResult.totalPages || 1,
     };
 
     // Split text into pages (approximation since pdf-parse doesn't provide page-by-page text)
-    const pages = createPageApproximation(data.text, data.numpages);
+    const pages = createPageApproximation(data.text, metadata.totalPages);
 
     // Calculate word count
     const totalWordCount = countWords(data.text);
@@ -178,6 +178,19 @@ function createPageApproximation(text: string, totalPages: number): Array<{
  */
 function countWords(text: string): number {
   return text.split(/\s+/).filter(word => word.length > 0).length;
+}
+
+/**
+ * Safely parse date from PDF metadata
+ */
+function tryParseDate(dateValue: any): Date | undefined {
+  try {
+    if (!dateValue) return undefined;
+    const date = new Date(dateValue);
+    return isNaN(date.getTime()) ? undefined : date;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
