@@ -366,7 +366,15 @@ IMPORTANT INSTRUCTIONS:
               }
 
               if (fullResponse) {
-                await addMessage(sessionId, "assistant", fullResponse);
+                // Get persona info to save with the message for consistent shared view styling
+                const persona = selectedPersonaId ? await getPersona(selectedPersonaId) : null;
+                await addMessage(
+                  sessionId,
+                  "assistant",
+                  fullResponse,
+                  selectedPersonaId || undefined,
+                  persona?.name
+                );
               }
             } catch (dbError) {
               console.error("Failed to save messages to DB:", dbError);

@@ -35,7 +35,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Shared conversation not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ messages: session.messages });
+    return NextResponse.json({
+      messages: session.messages,
+      sessionPersonaId: session.personaId,
+      sessionType: session.sessionType
+    });
   } catch (error) {
     console.error("Error fetching shared conversation:", error);
     return NextResponse.json({ error: "Failed to fetch shared conversation" }, { status: 500 });

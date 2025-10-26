@@ -183,113 +183,117 @@ select {
   }
 }
 
-/* Safari-specific fixes for dropdown option font rendering */
-/* Target Safari specifically using a combination of WebKit properties */
-@supports (-webkit-appearance: none) {
-  @media screen and (-webkit-min-device-pixel-ratio: 0) {
-    select option {
-      font-family: 'SF Compact Text', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif !important;
-      font-size: 16px !important;
-      font-weight: 600 !important;
-      -webkit-font-smoothing: antialiased !important;
-      -moz-osx-font-smoothing: grayscale !important;
-      color: var(--text-primary) !important;
-      background-color: var(--bg-primary) !important;
-      padding: 8px 12px !important;
-      line-height: 20px !important;
-    }
+/* Enhanced Safari font rendering for native select dropdowns */
+/* Uses multiple targeting strategies for comprehensive Safari support */
 
-    /* Ensure proper styling for hover/focus states in Safari */
-    select option:hover {
-      background-color: var(--bg-secondary) !important;
-    }
-
-    select option:checked {
-      background-color: var(--bg-secondary) !important;
-      font-weight: 600 !important;
-    }
-  }
-}
-
-/* Additional Safari-specific select styling */
-@supports (-webkit-appearance: none) {
+/* Primary Safari detection - targets Safari 14+ and WebKit browsers */
+@supports (-webkit-backdrop-filter: blur(1px)) {
   select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    /* Ensure font inheritance for the select element itself */
-    font-family: 'SF Compact Text', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 600;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    font-family: "SF Pro Text", "SF Compact Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+    -webkit-font-feature-settings: "kern" 1, "liga" 1, "calt" 1 !important;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1 !important;
+    -webkit-text-size-adjust: 100% !important;
+    text-rendering: optimizeLegibility !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    font-display: swap !important;
+  }
+
+  select option {
+    font-family: "SF Pro Text", "SF Compact Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    line-height: 1.25 !important;
+    -webkit-font-feature-settings: "kern" 1, "liga" 1, "calt" 1 !important;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1 !important;
+    -webkit-text-size-adjust: 100% !important;
+    text-rendering: optimizeLegibility !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
   }
 }
 
-/* Custom prose styling for markdown content */
+/* WebKit-specific targeting for older Safari versions */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  _::-webkit-full-page-media, _:future, :root select {
+    font-family: "SF Pro Text", "SF Compact Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+  }
+
+  _::-webkit-full-page-media, _:future, :root select option {
+    font-family: "SF Pro Text", "SF Compact Text", -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+    font-weight: 600 !important;
+  }
+}
+
+/* Fallback for all WebKit browsers */
+select {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Minimal prose styling for clean markdown content */
 .prose {
-  color: var(--text-primary);
+  color: inherit;
   max-width: none;
-  font-size: 16px;
-  line-height: 20px;
+  font-size: inherit;
+  line-height: inherit;
 }
 
+/* Minimal paragraph spacing */
 .prose p {
-  margin-top: 0;
-  margin-bottom: 12px;
+  margin: 0 0 6px 0;
 }
-
 .prose p:last-child {
   margin-bottom: 0;
 }
 
+/* Simple text formatting */
 .prose strong {
-  color: var(--strong-text);
   font-weight: 600;
 }
-
 .prose em {
   font-style: italic;
 }
 
+/* Inline code with minimal styling */
 .prose code {
   color: var(--code-text);
   background-color: var(--code-bg);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 14px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.9em;
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
+/* Code blocks with minimal margins */
 .prose pre {
   background-color: var(--pre-bg);
   border: 1px solid var(--pre-border);
-  border-radius: 8px;
-  padding: 12px 16px;
+  border-radius: 6px;
+  padding: 8px 12px;
   overflow-x: auto;
-  margin-top: 12px;
-  margin-bottom: 12px;
+  margin: 6px 0;
 }
-
 .prose pre code {
   background-color: transparent;
   padding: 0;
   border-radius: 0;
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 0.9em;
+  line-height: 1.4;
 }
 
+/* Simple links */
 .prose a {
   color: var(--link-color);
   text-decoration: underline;
   text-decoration-color: var(--link-color-underline);
   transition: text-decoration-color 0.2s;
 }
-
 .prose a:hover {
   text-decoration-color: var(--link-color-hover);
 }
 
-/* Headings */
+/* Minimal heading styling */
 .prose h1,
 .prose h2,
 .prose h3,
@@ -298,123 +302,68 @@ select {
 .prose h6 {
   color: var(--heading-text);
   font-weight: 600;
-  margin-top: 20px;
-  margin-bottom: 12px;
+  margin: 8px 0 4px 0;
+}
+.prose h1:first-child,
+.prose h2:first-child,
+.prose h3:first-child,
+.prose h4:first-child,
+.prose h5:first-child,
+.prose h6:first-child {
+  margin-top: 0;
 }
 
-.prose h1 {
-  font-size: 24px;
-  line-height: 28px;
-}
-
-.prose h2 {
-  font-size: 20px;
-  line-height: 24px;
-}
-
-.prose h3 {
-  font-size: 18px;
-  line-height: 22px;
-}
-
-.prose h4,
-.prose h5,
-.prose h6 {
-  font-size: 16px;
-  line-height: 20px;
-}
-
-/* Lists - properly nested bullets */
+/* Compact lists */
 .prose ul,
 .prose ol {
-  margin-top: 8px;
-  margin-bottom: 12px;
-  padding-left: 24px;
+  margin: 4px 0;
+  padding-left: 20px;
 }
-
-.prose ul {
-  list-style-type: disc;
-}
-
-.prose ol {
-  list-style-type: decimal;
-}
-
 .prose li {
-  margin-top: 4px;
-  margin-bottom: 4px;
-  padding-left: 4px;
+  margin: 2px 0;
 }
 
-/* Nested lists */
+/* Nested lists with minimal spacing */
 .prose ul ul,
-.prose ol ul {
-  list-style-type: circle;
-  margin-top: 4px;
-  margin-bottom: 4px;
-}
-
-.prose ul ul ul,
-.prose ol ul ul,
-.prose ol ol ul,
-.prose ul ol ul {
-  list-style-type: square;
-}
-
+.prose ol ul,
 .prose ol ol,
 .prose ul ol {
-  list-style-type: lower-alpha;
-  margin-top: 4px;
-  margin-bottom: 4px;
+  margin: 2px 0;
 }
 
-.prose ol ol ol,
-.prose ul ol ol,
-.prose ul ul ol,
-.prose ol ul ol {
-  list-style-type: lower-roman;
-}
-
-/* Blockquotes */
+/* Simple blockquotes */
 .prose blockquote {
   border-left: 3px solid var(--blockquote-border);
-  padding-left: 16px;
-  margin-left: 0;
-  margin-top: 12px;
-  margin-bottom: 12px;
+  padding-left: 12px;
+  margin: 6px 0;
   color: var(--blockquote-text);
   font-style: italic;
 }
 
-/* Horizontal rules */
+/* Minimal horizontal rules */
 .prose hr {
   border: none;
   border-top: 1px solid var(--hr-border);
-  margin-top: 20px;
-  margin-bottom: 20px;
+  margin: 12px 0;
 }
 
-/* Tables */
+/* Compact tables */
 .prose table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 12px;
-  margin-bottom: 12px;
+  margin: 6px 0;
 }
-
 .prose th,
 .prose td {
   border: 1px solid var(--table-border);
-  padding: 8px 12px;
+  padding: 6px 8px;
   text-align: left;
 }
-
 .prose th {
   background-color: var(--table-header-bg);
   font-weight: 600;
   color: var(--heading-text);
 }
-
 .prose tr:nth-child(even) {
   background-color: var(--table-row-even);
 }
