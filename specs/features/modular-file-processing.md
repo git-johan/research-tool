@@ -1,0 +1,96 @@
+# Modular File Processing
+
+**Status:** Draft
+**Priority:** High
+**Assignee:** @johanjosok
+**Epic:** Document Processing Refactor
+**GitHub Issue:** #1
+
+## Problem
+
+The current file upload and processing pipeline is tightly coupled and inflexible:
+
+- **Tight Coupling**: PDF extraction → chunking → embedding happens in one API call
+- **Limited Formats**: Only supports text files for upload, PDFs only from URLs
+- **Poor Error Handling**: If chunking fails, you lose the extracted content
+- **No Content Caching**: Can't reprocess same content differently
+- **Inflexible**: Hard to add new file types, embedding models, or chunk strategies
+- **Unclear Status**: "completed" doesn't tell users the document is searchable
+
+## Solution
+
+Implement a modular 4-stage pipeline that separates concerns:
+
+```
+File Upload → Content Extraction → AI Formatting → Vector Indexing
+   ↓              ↓                   ↓              ↓
+uploaded → extracted → formatted → searchable
+```
+
+### Architecture
+
+**Stage 1: Universal File Upload**
+- Accept any file type (PDF, DOCX, TXT, HTML, etc.)
+- Store in `/uploads/` with unique names
+- Status: `uploaded`
+
+**Stage 2: Content Extraction**
+- Route to appropriate extractor based on MIME type
+- Store structured JSON in `/extractions/`
+- Status: `extracted`
+
+**Stage 3: AI-Powered Formatting**
+- Use AI (GPT-4) to create clean markdown from extracted content
+- Handle tables, lists, formatting cleanup
+- Store `.md` in `/formatted/`
+- Status: `formatted`
+
+**Stage 4: Vector Indexing**
+- Save metadata to MongoDB
+- Chunk the markdown content
+- Generate embeddings and store in ChromaDB
+- Status: `searchable`
+
+### API Design
+
+```json
+{
+  "upload": "POST /api/upload",
+  "extract": "POST /api/extract/{fileId}",
+  "format": "POST /api/format/{fileId}",
+  "index": "POST /api/index/{fileId}",
+  "status": "GET /api/files/{fileId}/status"
+}
+```
+
+## Implementation Plan
+
+- [ ] Create universal file upload endpoint (`POST /api/upload`)
+- [ ] Build content extraction service with format routing
+- [ ] Implement AI-powered markdown formatting
+- [ ] Create vector indexing service
+- [ ] Update FileUploader component to support all file types
+- [ ] Add status tracking and progress indicators
+- [ ] Migrate existing documents to new pipeline
+- [ ] Update search interface to work with new system
+- [ ] Add comprehensive error handling and retry logic
+- [ ] Write tests for each pipeline stage
+
+## Acceptance Criteria
+
+- [ ] Users can upload PDF files directly (not just URLs)
+- [ ] Users can upload DOCX, HTML, and other common formats
+- [ ] Each pipeline stage can be run independently
+- [ ] Failed stages don't lose previous work
+- [ ] Clear status progression: `uploaded` → `extracted` → `formatted` → `searchable`
+- [ ] Extracted content is cached and reusable
+- [ ] AI formatting produces clean, readable markdown
+- [ ] All existing functionality continues to work
+- [ ] New pipeline is faster and more reliable than current system
+
+## Notes
+
+- This refactor enables future extensibility (audio transcription, video processing)
+- Intermediate JSON format preserves structure for multiple output formats
+- Modular design allows independent testing and debugging
+- User-centric status names improve UX clarity
