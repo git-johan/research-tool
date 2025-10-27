@@ -1,14 +1,21 @@
 import { NextRequest } from "next/server";
 import { Logger } from "@/lib/logger";
 import { createDocument, updateDocumentStatus } from "@/lib/db";
+import { extractContent, getSupportedExtensions } from "@/lib/processing/extractors";
 import fs from "fs/promises";
 import path from "path";
 
 // Configuration constants
-const MAX_FILE_SIZE_MB = 10;
+const MAX_FILE_SIZE_MB = 30;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
-const ALLOWED_MIME_TYPES = ["text/plain"];
-const ALLOWED_EXTENSIONS = [".txt"];
+const ALLOWED_MIME_TYPES = [
+  "application/pdf",
+  "text/html",
+  "text/plain",
+  "text/markdown",
+  "text/x-markdown"
+];
+const ALLOWED_EXTENSIONS = getSupportedExtensions();
 const UPLOADS_DIR = path.join(process.cwd(), "uploads");
 
 // Error types for structured error handling
@@ -41,7 +48,7 @@ function validateFileType(filename: string, mimeType: string): UploadError | nul
   if (!ALLOWED_EXTENSIONS.includes(ext)) {
     return {
       code: "INVALID_FILE_TYPE",
-      message: `Only .txt files are supported. Received: ${ext}`,
+      message: `Unsupported file type. Received: ${ext}`,
       details: { allowedExtensions: ALLOWED_EXTENSIONS }
     };
   }
@@ -49,7 +56,7 @@ function validateFileType(filename: string, mimeType: string): UploadError | nul
   if (!ALLOWED_MIME_TYPES.includes(mimeType)) {
     return {
       code: "INVALID_MIME_TYPE",
-      message: `Invalid MIME type. Expected text/plain, received: ${mimeType}`,
+      message: `Invalid MIME type. Received: ${mimeType}`,
       details: { allowedMimeTypes: ALLOWED_MIME_TYPES }
     };
   }
@@ -81,27 +88,6 @@ function validateFileSize(size: number): UploadError | null {
   return null;
 }
 
-// Detect text encoding with fallback
-async function detectAndReadTextFile(buffer: Buffer): Promise<{ text: string; encoding: string }> {
-  // Try UTF-8 first
-  try {
-    const text = buffer.toString('utf8');
-    // Check for invalid UTF-8 characters
-    if (!text.includes('\uFFFD')) {
-      return { text, encoding: 'utf-8' };
-    }
-  } catch (error) {
-    // UTF-8 failed, try latin1
-  }
-
-  // Fallback to latin1 (covers most Western European encodings)
-  try {
-    const text = buffer.toString('latin1');
-    return { text, encoding: 'latin1' };
-  } catch (error) {
-    throw new Error('Unable to decode file text. File may be corrupted or in an unsupported encoding.');
-  }
-}
 
 // Ensure uploads directory exists
 async function ensureUploadsDirectory(): Promise<void> {
@@ -173,36 +159,6 @@ export async function POST(req: NextRequest) {
     logger.debug("Reading file buffer");
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Detect encoding and read text
-    logger.debug("Detecting file encoding and reading text");
-    let text: string;
-    let encoding: string;
-
-    try {
-      const result = await detectAndReadTextFile(buffer);
-      text = result.text;
-      encoding = result.encoding;
-      logger.debug("File text decoded successfully", {
-        metadata: { encoding, textLength: text.length }
-      });
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown encoding error';
-      logger.error("Failed to decode file text", { metadata: { error: errorMessage } });
-      return createErrorResponse({
-        code: "ENCODING_ERROR",
-        message: errorMessage
-      }, 500);
-    }
-
-    // Validate decoded text
-    if (text.trim().length === 0) {
-      logger.warn("File contains no readable text content");
-      return createErrorResponse({
-        code: "NO_TEXT_CONTENT",
-        message: "File contains no readable text content"
-      });
-    }
-
     // Ensure uploads directory exists
     await ensureUploadsDirectory();
 
@@ -227,10 +183,53 @@ export async function POST(req: NextRequest) {
       }, 500);
     }
 
+    // Extract content using modular extraction system
+    logger.debug("Extracting content using modular system", { metadata: { mimeType: file.type } });
+    let extractedContent;
+    try {
+      extractedContent = await extractContent(filePath, file.type);
+      logger.info("Content extracted successfully", {
+        metadata: {
+          wordCount: extractedContent.metadata.wordCount,
+          extractionTime: extractedContent.metadata.extractionTime,
+          title: extractedContent.metadata.title
+        }
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown extraction error';
+      logger.error("Failed to extract content", { metadata: { error: errorMessage } });
+
+      // Clean up uploaded file if extraction failed
+      try {
+        await fs.unlink(filePath);
+      } catch (cleanupError) {
+        logger.warn("Failed to clean up uploaded file after extraction error");
+      }
+
+      return createErrorResponse({
+        code: "EXTRACTION_ERROR",
+        message: errorMessage
+      }, 500);
+    }
+
+    // Validate extracted content
+    if (extractedContent.text.trim().length === 0) {
+      logger.warn("File contains no readable text content");
+      // Clean up uploaded file
+      try {
+        await fs.unlink(filePath);
+      } catch (cleanupError) {
+        logger.warn("Failed to clean up uploaded file with no content");
+      }
+      return createErrorResponse({
+        code: "NO_TEXT_CONTENT",
+        message: "File contains no readable text content"
+      });
+    }
+
     // Create text preview for metadata
-    const textPreview = text.substring(0, 200);
-    const wordCount = text.split(/\s+/).filter(word => word.length > 0).length;
-    const lineCount = text.split('\n').length;
+    const textPreview = extractedContent.text.substring(0, 200);
+    const { text, metadata } = extractedContent;
 
     // Save document metadata to database
     logger.debug("Saving document metadata to database");
@@ -239,20 +238,30 @@ export async function POST(req: NextRequest) {
         file.name,
         filePath,
         file.size,
-        encoding,
+        metadata.encoding || 'binary',
         file.type,
         clientId,
         textPreview
       );
 
-      // Update document metadata with text statistics
+      // Update document metadata with extraction results
       const db = await import("@/lib/db").then(m => m.getDb());
       await db.collection("documents").updateOne(
         { _id: document._id },
         {
           $set: {
-            "metadata.wordCount": wordCount,
-            "metadata.lineCount": lineCount
+            "metadata.wordCount": metadata.wordCount,
+            "metadata.title": metadata.title,
+            "metadata.author": metadata.author,
+            "metadata.pageCount": metadata.pageCount,
+            "metadata.extractionTime": metadata.extractionTime,
+            "metadata.createdAt": metadata.createdAt,
+            "metadata.modifiedAt": metadata.modifiedAt,
+            "extractedContent": {
+              text: text,
+              preview: textPreview,
+              extractedAt: new Date()
+            }
           }
         }
       );
@@ -261,16 +270,16 @@ export async function POST(req: NextRequest) {
         metadata: {
           documentId: document._id,
           filename: document.filename,
-          wordCount,
-          lineCount,
-          encoding
+          wordCount: metadata.wordCount,
+          title: metadata.title,
+          extractionTime: metadata.extractionTime
         }
       });
 
       // Update status to ready for processing
       await updateDocumentStatus(document._id, "ready_for_processing");
 
-      // Return success response
+      // Return success response with extracted content
       return new Response(
         JSON.stringify({
           success: true,
@@ -280,11 +289,19 @@ export async function POST(req: NextRequest) {
             size: document.fileSizeBytes,
             encoding: document.encoding,
             status: document.status,
-            uploadedAt: document.uploadedAt,
+            uploadedAt: document.uploadedAt
+          },
+          extraction: {
+            text: text,
+            preview: textPreview,
             metadata: {
-              textPreview,
-              wordCount,
-              lineCount
+              title: metadata.title,
+              author: metadata.author,
+              wordCount: metadata.wordCount,
+              pageCount: metadata.pageCount,
+              extractionTime: metadata.extractionTime,
+              createdAt: metadata.createdAt,
+              modifiedAt: metadata.modifiedAt
             }
           }
         }),
