@@ -24,7 +24,7 @@ Implement a modular 4-stage pipeline that separates concerns:
 ```
 File Upload → Content Extraction → AI Formatting → Vector Indexing
    ↓              ↓                   ↓              ↓
-uploaded → extracted → formatted → searchable
+uploaded → extracted → formatted → indexed
 ```
 
 ### Architecture
@@ -49,7 +49,24 @@ uploaded → extracted → formatted → searchable
 - Save metadata to MongoDB
 - Chunk the markdown content
 - Generate embeddings and store in ChromaDB
-- Status: `searchable`
+- Status: `indexed`
+
+### File Structure
+
+```
+src/lib/processing/
+├── upload.ts                 # Stage 1: File upload handling
+├── extractors/
+│   ├── pdf-extractor.ts      # PDF extraction (moved from existing)
+│   ├── docx-extractor.ts     # DOCX extraction (new)
+│   ├── html-extractor.ts     # HTML extraction (new)
+│   ├── csv-extractor.ts      # CSV extraction (new)
+│   ├── text-extractor.ts     # TXT/MD extraction (new)
+│   └── index.ts              # Extractor routing
+├── formatter.ts              # Stage 3: AI markdown formatting
+├── indexer.ts                # Stage 4: Chunking + embeddings (renamed from document-processing.ts)
+└── pipeline.ts               # Main pipeline coordinator
+```
 
 ### API Design
 
@@ -65,13 +82,39 @@ uploaded → extracted → formatted → searchable
 
 ## Implementation Plan
 
+### File Structure Refactor
+- [ ] Create modular processing structure: `src/lib/processing/`
+- [ ] Rename `document-processing.ts` → `indexer.ts` (better naming)
+- [ ] Move `pdf-extractor.ts` → `extractors/pdf-extractor.ts`
+- [ ] Create extractor routing system: `extractors/index.ts`
+
+### Stage 1: Universal File Upload
 - [ ] Create universal file upload endpoint (`POST /api/upload`)
-- [ ] Build content extraction service with format routing
-- [ ] Implement AI-powered markdown formatting
-- [ ] Create vector indexing service
+- [ ] Extend MIME type support beyond current text/PDF limitation
 - [ ] Update FileUploader component to support all file types
-- [ ] Add status tracking and progress indicators
-- [ ] Migrate existing documents to new pipeline
+
+### Stage 2: Content Extraction Service
+- [ ] Build content extraction service with format routing
+  - [ ] PDF files (extend existing `pdf-extractor.ts`)
+  - [ ] DOCX files (add mammoth library)
+  - [ ] HTML files (add cheerio extraction)
+  - [ ] CSV files (add table formatting)
+  - [ ] TXT/MD files (extend existing text processing)
+- [ ] Create extractor factory pattern for MIME type routing
+
+### Stage 3: AI-Powered Formatting
+- [ ] Implement AI-powered markdown formatting service
+- [ ] Handle tables, lists, and complex formatting cleanup
+- [ ] Store formatted content as clean markdown
+
+### Stage 4: Vector Indexing Service
+- [ ] Create vector indexing service (extend existing `document-processing.ts` logic)
+- [ ] Reuse existing chunking (500 words, 50 overlap) and embedding pipeline
+- [ ] Maintain compatibility with current MongoDB schema and ChromaDB setup
+
+### Migration & Integration
+- [ ] Add status tracking with new progression: `uploaded → extracted → formatted → indexed`
+- [ ] Migrate existing documents to new pipeline structure
 - [ ] Update search interface to work with new system
 - [ ] Add comprehensive error handling and retry logic
 - [ ] Write tests for each pipeline stage
@@ -82,7 +125,7 @@ uploaded → extracted → formatted → searchable
 - [ ] Users can upload DOCX, HTML, and other common formats
 - [ ] Each pipeline stage can be run independently
 - [ ] Failed stages don't lose previous work
-- [ ] Clear status progression: `uploaded` → `extracted` → `formatted` → `searchable`
+- [ ] Clear status progression: `uploaded` → `extracted` → `formatted` → `indexed`
 - [ ] Extracted content is cached and reusable
 - [ ] AI formatting produces clean, readable markdown
 - [ ] All existing functionality continues to work
