@@ -1,0 +1,95 @@
+name: Sync Specs with GitHub Issues
+
+on:
+  push:
+    branches: [main, master, develop, feature/*]
+    paths: ['specs/features/**/*.md']
+  pull_request:
+    branches: [main, master, develop]
+    paths: ['specs/features/**/*.md']
+
+jobs:
+  sync-specs:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.merged == true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed spec files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "files=$(git diff --name-only ${{ github.event.before }}..${{ github.event.after }} -- 'specs/features/**/*.md' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          else
+            echo "files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD -- 'specs/features/**/*.md' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sync specs to issues
+        if: steps.changed-files.outputs.files != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for file in ${{ steps.changed-files.outputs.files }}; do
+            if [ -f "$file" ]; then
+              echo "Processing: $file"
+
+              # Extract issue number from spec frontmatter
+              issue_number=$(grep -E '^\*\*GitHub Issue:\*\*' "$file" | sed -E 's/.*#([0-9]+).*/\1/' || echo "")
+
+              if [ -n "$issue_number" ] && [ "$issue_number" != "0" ]; then
+                echo "Updating issue #$issue_number for $file"
+
+                # Update issue body with current spec content
+                title=$(grep "^# " "$file" | head -1 | sed 's/^# //')
+
+                gh issue edit "$issue_number" \
+                  --title "Feature: $title" \
+                  --body-file "$file" || echo "Failed to update issue #$issue_number"
+
+                # Add comment about the update
+                gh issue comment "$issue_number" \
+                  --body "📝 Spec updated automatically from commit ${{ github.sha }}" || echo "Failed to add comment"
+              else
+                echo "No valid GitHub issue number found in $file"
+              fi
+            fi
+          done
+
+      - name: Validate spec format
+        if: steps.changed-files.outputs.files != ''
+        run: |
+          for file in ${{ steps.changed-files.outputs.files }}; do
+            if [ -f "$file" ]; then
+              echo "Validating: $file"
+
+              # Check required sections
+              missing_sections=""
+
+              if ! grep -q "## Problem" "$file"; then
+                missing_sections="$missing_sections Problem"
+              fi
+
+              if ! grep -q "## Solution" "$file"; then
+                missing_sections="$missing_sections Solution"
+              fi
+
+              if ! grep -q "## Implementation Plan" "$file"; then
+                missing_sections="$missing_sections 'Implementation Plan'"
+              fi
+
+              if ! grep -q "## Acceptance Criteria" "$file"; then
+                missing_sections="$missing_sections 'Acceptance Criteria'"
+              fi
+
+              if [ -n "$missing_sections" ]; then
+                echo "❌ $file is missing required sections:$missing_sections"
+                echo "::error file=$file::Missing required sections:$missing_sections"
+              else
+                echo "✅ $file format validation passed"
+              fi
+            fi
+          done

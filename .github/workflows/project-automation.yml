@@ -1,0 +1,157 @@
+name: Project Board Automation
+
+on:
+  issues:
+    types: [opened, closed, reopened, labeled, unlabeled]
+  pull_request:
+    types: [opened, closed, reopened, ready_for_review, converted_to_draft]
+
+jobs:
+  manage-project-board:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Add new issues to project board
+        if: github.event_name == 'issues' && github.event.action == 'opened'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          issue_number=${{ github.event.issue.number }}
+          echo "Adding issue #$issue_number to project board"
+
+          # Try to add to project (adjust project number as needed)
+          # This requires a project to exist - you'll need to create one first
+          # gh issue edit $issue_number --add-project "Main Project" --project-field "Status=Backlog" || echo "Could not add to project board"
+
+          # For now, we'll just add appropriate labels based on issue content
+          if echo '${{ github.event.issue.labels }}' | grep -q 'spec'; then
+            gh issue edit $issue_number --add-label "feature-spec" || echo "Could not add label"
+          fi
+
+      - name: Move issues based on status changes
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          issue_number=${{ github.event.issue.number }}
+          issue_state=${{ github.event.issue.state }}
+
+          echo "Managing project board for issue #$issue_number (state: $issue_state)"
+
+          # Find linked spec file to check status
+          spec_file=$(grep -r "GitHub Issue.*#$issue_number" specs/features/ | cut -d: -f1 | head -1 || echo "")
+
+          if [ -n "$spec_file" ]; then
+            echo "Found linked spec: $spec_file"
+
+            # Extract status from spec
+            spec_status=$(grep '^\*\*Status:\*\*' "$spec_file" | sed 's/\*\*Status:\*\* //' || echo "")
+            echo "Spec status: $spec_status"
+
+            # Update labels based on spec status
+            case "$spec_status" in
+              "Draft")
+                gh issue edit $issue_number --remove-label "in-progress,review,completed" --add-label "draft" || echo "Could not update labels"
+                ;;
+              "In Progress")
+                gh issue edit $issue_number --remove-label "draft,review,completed" --add-label "in-progress" || echo "Could not update labels"
+                ;;
+              "Review")
+                gh issue edit $issue_number --remove-label "draft,in-progress,completed" --add-label "review" || echo "Could not update labels"
+                ;;
+              "Complete")
+                gh issue edit $issue_number --remove-label "draft,in-progress,review" --add-label "completed" || echo "Could not update labels"
+                if [ "$issue_state" = "open" ]; then
+                  gh issue close $issue_number --comment "✅ Automatically closed - feature marked as Complete in spec" || echo "Could not close issue"
+                fi
+                ;;
+            esac
+          fi
+
+      - name: Create status labels if they don't exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Ensuring status labels exist..."
+
+          # Create labels if they don't exist
+          gh label create "draft" --description "Feature spec in draft status" --color "E4E669" --force || echo "Label 'draft' already exists"
+          gh label create "in-progress" --description "Feature currently being implemented" --color "FBCA04" --force || echo "Label 'in-progress' already exists"
+          gh label create "review" --description "Feature implementation ready for review" --color "0052CC" --force || echo "Label 'review' already exists"
+          gh label create "completed" --description "Feature implementation completed" --color "0E8A16" --force || echo "Label 'completed' already exists"
+          gh label create "feature-spec" --description "Issues created from feature specifications" --color "006B75" --force || echo "Label 'feature-spec' already exists"
+
+      - name: Manage PR workflow
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_number=${{ github.event.pull_request.number }}
+          pr_action=${{ github.event.action }}
+          pr_state=${{ github.event.pull_request.state }}
+          pr_draft=${{ github.event.pull_request.draft }}
+
+          echo "Managing PR #$pr_number (action: $pr_action, state: $pr_state, draft: $pr_draft)"
+
+          # Extract linked issue numbers from PR description
+          pr_body="${{ github.event.pull_request.body }}"
+          issue_numbers=$(echo "$pr_body" | grep -oE '(fixes|closes|resolves|addresses)\s+#[0-9]+' | grep -oE '#[0-9]+' | sed 's/#//' | tr '\n' ' ' || echo "")
+
+          if [ -n "$issue_numbers" ]; then
+            echo "Found linked issues: $issue_numbers"
+
+            for issue_num in $issue_numbers; do
+              case "$pr_action" in
+                "opened")
+                  if [ "$pr_draft" = "true" ]; then
+                    gh issue comment $issue_num --body "🚧 Draft PR #$pr_number opened for this feature" || echo "Could not comment"
+                  else
+                    gh issue comment $issue_num --body "🔄 PR #$pr_number opened for this feature" || echo "Could not comment"
+                    gh issue edit $issue_num --add-label "review" || echo "Could not add label"
+                  fi
+                  ;;
+                "ready_for_review")
+                  gh issue comment $issue_num --body "👀 PR #$pr_number is ready for review" || echo "Could not comment"
+                  gh issue edit $issue_num --add-label "review" || echo "Could not add label"
+                  ;;
+                "converted_to_draft")
+                  gh issue comment $issue_num --body "🚧 PR #$pr_number converted to draft" || echo "Could not comment"
+                  gh issue edit $issue_num --remove-label "review" --add-label "in-progress" || echo "Could not update labels"
+                  ;;
+                "closed")
+                  if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+                    gh issue comment $issue_num --body "✅ PR #$pr_number merged! Feature completed." || echo "Could not comment"
+                    gh issue close $issue_num --comment "🎉 Feature implementation completed and merged" || echo "Could not close issue"
+                  else
+                    gh issue comment $issue_num --body "❌ PR #$pr_number was closed without merging" || echo "Could not comment"
+                    gh issue edit $issue_num --remove-label "review" --add-label "in-progress" || echo "Could not update labels"
+                  fi
+                  ;;
+              esac
+            done
+          else
+            echo "No linked issues found in PR description"
+          fi
+
+      - name: Generate automation report
+        if: always()
+        run: |
+          echo "🤖 Project Automation Report"
+          echo "============================"
+          echo "Event: ${{ github.event_name }}"
+          echo "Action: ${{ github.event.action }}"
+
+          if [ "${{ github.event_name }}" = "issues" ]; then
+            echo "Issue: #${{ github.event.issue.number }}"
+            echo "State: ${{ github.event.issue.state }}"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "PR: #${{ github.event.pull_request.number }}"
+            echo "State: ${{ github.event.pull_request.state }}"
+            echo "Draft: ${{ github.event.pull_request.draft }}"
+            echo "Merged: ${{ github.event.pull_request.merged }}"
+          fi
+
+          echo "Automation completed: ${{ job.status }}"

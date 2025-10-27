@@ -1,0 +1,178 @@
+name: Bidirectional Status Sync
+
+on:
+  issues:
+    types: [closed, reopened, labeled, unlabeled]
+  pull_request:
+    types: [closed]
+    branches: [main, master, develop]
+
+jobs:
+  sync-issue-to-spec:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'issues'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find linked spec file
+        id: find-spec
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          issue_number=${{ github.event.issue.number }}
+          echo "Looking for spec file linked to issue #$issue_number"
+
+          # Search for spec files that reference this issue
+          spec_file=$(grep -r "GitHub Issue.*#$issue_number" specs/features/ | cut -d: -f1 | head -1 || echo "")
+
+          if [ -n "$spec_file" ]; then
+            echo "file=$spec_file" >> $GITHUB_OUTPUT
+            echo "Found linked spec: $spec_file"
+          else
+            echo "No spec file found for issue #$issue_number"
+            echo "file=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update spec status based on issue state
+        if: steps.find-spec.outputs.file != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          spec_file="${{ steps.find-spec.outputs.file }}"
+          issue_state="${{ github.event.issue.state }}"
+          issue_number=${{ github.event.issue.number }}
+
+          echo "Updating $spec_file based on issue #$issue_number state: $issue_state"
+
+          # Determine new status based on issue state and labels
+          new_status=""
+          case "$issue_state" in
+            "closed")
+              # Check if it was closed as completed or not planned
+              if echo '${{ github.event.issue.labels }}' | grep -q 'wontfix\|invalid\|duplicate'; then
+                new_status="Draft"
+              else
+                new_status="Complete"
+              fi
+              ;;
+            "open")
+              # Check labels to determine status
+              if echo '${{ github.event.issue.labels }}' | grep -q 'in-progress'; then
+                new_status="In Progress"
+              elif echo '${{ github.event.issue.labels }}' | grep -q 'review'; then
+                new_status="Review"
+              else
+                new_status="Draft"
+              fi
+              ;;
+          esac
+
+          if [ -n "$new_status" ]; then
+            echo "Setting status to: $new_status"
+
+            # Update the status in the spec file
+            sed -i "s/\*\*Status:\*\* .*/\*\*Status:\*\* $new_status/" "$spec_file"
+
+            # Commit the change
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add "$spec_file"
+
+            if git diff --staged --quiet; then
+              echo "No status change needed"
+            else
+              git commit -m "auto: update spec status to '$new_status' based on issue #$issue_number
+
+🤖 Auto-synced from GitHub issue state change" || echo "Failed to commit"
+
+              git push || echo "Failed to push changes"
+
+              # Comment on the issue
+              gh issue comment "$issue_number" \
+                --body "📝 Spec status automatically updated to **$new_status** in \`$spec_file\`" || echo "Failed to add comment"
+            fi
+          fi
+
+  sync-pr-to-spec:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find specs linked to PR
+        id: find-specs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pr_number=${{ github.event.pull_request.number }}
+          pr_body="${{ github.event.pull_request.body }}"
+
+          echo "Looking for issue references in PR #$pr_number"
+
+          # Extract issue numbers from PR body (supports "fixes #123", "closes #456", etc.)
+          issue_numbers=$(echo "$pr_body" | grep -oE '(fixes|closes|resolves|addresses)\s+#[0-9]+' | grep -oE '#[0-9]+' | sed 's/#//' | tr '\n' ' ' || echo "")
+
+          if [ -n "$issue_numbers" ]; then
+            echo "Found linked issues: $issue_numbers"
+
+            # Find spec files for these issues
+            spec_files=""
+            for issue_num in $issue_numbers; do
+              spec_file=$(grep -r "GitHub Issue.*#$issue_num" specs/features/ | cut -d: -f1 | head -1 || echo "")
+              if [ -n "$spec_file" ]; then
+                spec_files="$spec_files $spec_file"
+              fi
+            done
+
+            echo "files=$spec_files" >> $GITHUB_OUTPUT
+            echo "issues=$issue_numbers" >> $GITHUB_OUTPUT
+          else
+            echo "No linked issues found"
+            echo "files=" >> $GITHUB_OUTPUT
+            echo "issues=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update spec status to Complete
+        if: steps.find-specs.outputs.files != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          spec_files="${{ steps.find-specs.outputs.files }}"
+          issue_numbers="${{ steps.find-specs.outputs.issues }}"
+          pr_number=${{ github.event.pull_request.number }}
+
+          echo "Updating specs to Complete status after PR #$pr_number merge"
+
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          for spec_file in $spec_files; do
+            if [ -f "$spec_file" ]; then
+              echo "Updating $spec_file to Complete status"
+
+              # Update status to Complete
+              sed -i "s/\*\*Status:\*\* .*/\*\*Status:\*\* Complete/" "$spec_file"
+
+              git add "$spec_file"
+            fi
+          done
+
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "auto: mark specs as Complete after PR #$pr_number merge
+
+🤖 Auto-completed from merged pull request" || echo "Failed to commit"
+
+            git push || echo "Failed to push changes"
+
+            # Comment on linked issues
+            for issue_num in $issue_numbers; do
+              gh issue comment "$issue_num" \
+                --body "✅ Feature completed! PR #$pr_number has been merged and the spec status has been updated to **Complete**." || echo "Failed to comment on issue #$issue_num"
+            done
+          fi

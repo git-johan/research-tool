@@ -1,0 +1,226 @@
+name: Validate Specs Quality and Format
+
+on:
+  pull_request:
+    branches: [main, master, develop]
+    paths: ['specs/features/**/*.md']
+  push:
+    branches: [feature/*]
+    paths: ['specs/features/**/*.md']
+
+jobs:
+  validate-specs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get changed spec files
+        id: changed-files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "files=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}..HEAD -- 'specs/features/**/*.md' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          else
+            echo "files=$(git diff --name-only ${{ github.event.before }}..${{ github.event.after }} -- 'specs/features/**/*.md' | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate spec format and structure
+        if: steps.changed-files.outputs.files != ''
+        run: |
+          echo "🔍 Validating spec files..."
+          validation_failed=false
+
+          for file in ${{ steps.changed-files.outputs.files }}; do
+            if [ -f "$file" ]; then
+              echo "📄 Validating: $file"
+
+              # Check file naming convention (kebab-case)
+              filename=$(basename "$file" .md)
+              if ! echo "$filename" | grep -qE '^[a-z0-9]+(-[a-z0-9]+)*$'; then
+                echo "❌ Invalid filename: $filename (should be kebab-case)"
+                echo "::error file=$file::Filename should be in kebab-case (e.g., 'user-authentication.md')"
+                validation_failed=true
+              fi
+
+              # Check required frontmatter fields
+              if ! grep -q '^\*\*Status:\*\*' "$file"; then
+                echo "❌ Missing Status field in $file"
+                echo "::error file=$file::Missing required field: **Status:**"
+                validation_failed=true
+              fi
+
+              if ! grep -q '^\*\*Priority:\*\*' "$file"; then
+                echo "❌ Missing Priority field in $file"
+                echo "::error file=$file::Missing required field: **Priority:**"
+                validation_failed=true
+              fi
+
+              if ! grep -q '^\*\*Assignee:\*\*' "$file"; then
+                echo "❌ Missing Assignee field in $file"
+                echo "::error file=$file::Missing required field: **Assignee:**"
+                validation_failed=true
+              fi
+
+              # Check required sections
+              required_sections=("Problem" "Solution" "Implementation Plan" "Acceptance Criteria")
+              for section in "${required_sections[@]}"; do
+                if ! grep -q "## $section" "$file"; then
+                  echo "❌ Missing section: $section in $file"
+                  echo "::error file=$file::Missing required section: ## $section"
+                  validation_failed=true
+                fi
+              done
+
+              # Check for empty sections
+              if grep -A 1 "## Problem" "$file" | tail -1 | grep -qE '^$|^##'; then
+                echo "❌ Empty Problem section in $file"
+                echo "::error file=$file::Problem section appears to be empty"
+                validation_failed=true
+              fi
+
+              if grep -A 1 "## Solution" "$file" | tail -1 | grep -qE '^$|^##'; then
+                echo "❌ Empty Solution section in $file"
+                echo "::error file=$file::Solution section appears to be empty"
+                validation_failed=true
+              fi
+
+              # Check Implementation Plan has checkboxes
+              if ! grep -A 20 "## Implementation Plan" "$file" | grep -q '- \[ \]'; then
+                echo "❌ Implementation Plan should have checkboxes in $file"
+                echo "::error file=$file::Implementation Plan should contain task checkboxes (- [ ])"
+                validation_failed=true
+              fi
+
+              # Check Acceptance Criteria has checkboxes
+              if ! grep -A 20 "## Acceptance Criteria" "$file" | grep -q '- \[ \]'; then
+                echo "❌ Acceptance Criteria should have checkboxes in $file"
+                echo "::error file=$file::Acceptance Criteria should contain checkboxes (- [ ])"
+                validation_failed=true
+              fi
+
+              # Check valid status values
+              status=$(grep '^\*\*Status:\*\*' "$file" | sed 's/\*\*Status:\*\* //')
+              if ! echo "$status" | grep -qE '^(Draft|In Progress|Review|Complete)$'; then
+                echo "❌ Invalid status '$status' in $file"
+                echo "::error file=$file::Status must be one of: Draft, In Progress, Review, Complete"
+                validation_failed=true
+              fi
+
+              # Check valid priority values
+              priority=$(grep '^\*\*Priority:\*\*' "$file" | sed 's/\*\*Priority:\*\* //')
+              if ! echo "$priority" | grep -qE '^(High|Medium|Low)$'; then
+                echo "❌ Invalid priority '$priority' in $file"
+                echo "::error file=$file::Priority must be one of: High, Medium, Low"
+                validation_failed=true
+              fi
+
+              echo "✅ Structure validation completed for $file"
+            fi
+          done
+
+          if [ "$validation_failed" = true ]; then
+            echo "❌ Validation failed for one or more spec files"
+            exit 1
+          else
+            echo "✅ All spec files passed validation"
+          fi
+
+      - name: Validate GitHub issue links
+        if: steps.changed-files.outputs.files != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "🔗 Validating GitHub issue links..."
+          link_validation_failed=false
+
+          for file in ${{ steps.changed-files.outputs.files }}; do
+            if [ -f "$file" ]; then
+              echo "🔍 Checking issue links in: $file"
+
+              # Extract issue number if present
+              issue_number=$(grep -E '^\*\*GitHub Issue:\*\*' "$file" | sed -E 's/.*#([0-9]+).*/\1/' || echo "")
+
+              if [ -n "$issue_number" ] && [ "$issue_number" != "0" ]; then
+                echo "Validating issue #$issue_number"
+
+                # Check if issue exists
+                if gh issue view "$issue_number" >/dev/null 2>&1; then
+                  echo "✅ Issue #$issue_number exists"
+                else
+                  echo "❌ Issue #$issue_number does not exist"
+                  echo "::error file=$file::Referenced GitHub issue #$issue_number does not exist"
+                  link_validation_failed=true
+                fi
+              else
+                echo "ℹ️  No GitHub issue link found in $file"
+              fi
+            fi
+          done
+
+          if [ "$link_validation_failed" = true ]; then
+            echo "❌ Issue link validation failed"
+            exit 1
+          else
+            echo "✅ All issue links are valid"
+          fi
+
+      - name: Auto-format specs
+        if: steps.changed-files.outputs.files != ''
+        run: |
+          echo "🎨 Auto-formatting spec files..."
+
+          for file in ${{ steps.changed-files.outputs.files }}; do
+            if [ -f "$file" ]; then
+              echo "Formatting: $file"
+
+              # Normalize line endings
+              sed -i 's/\r$//' "$file"
+
+              # Ensure single empty line between sections
+              sed -i '/^## /i\\' "$file" | sed -i '/^$/N;/^\n$/d' "$file"
+
+              # Fix checkbox formatting (ensure space after -)
+              sed -i 's/^-\[ \]/- [ ]/' "$file"
+              sed -i 's/^-\[x\]/- [x]/' "$file"
+
+              # Ensure proper markdown heading spacing
+              sed -i 's/^#\([^# ]\)/# \1/' "$file"
+              sed -i 's/^##\([^# ]\)/## \1/' "$file"
+              sed -i 's/^###\([^# ]\)/### \1/' "$file"
+
+              echo "✅ Formatted $file"
+            fi
+          done
+
+      - name: Check if formatting changed files
+        if: steps.changed-files.outputs.files != ''
+        run: |
+          if git diff --quiet; then
+            echo "✅ No formatting changes needed"
+          else
+            echo "📝 Auto-formatting made changes:"
+            git diff --name-only
+
+            # In PR context, suggest committing the changes
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "::notice::Auto-formatting detected issues. Consider running the formatter locally and committing the changes."
+            fi
+          fi
+
+      - name: Generate validation report
+        if: always() && steps.changed-files.outputs.files != ''
+        run: |
+          echo "📊 Validation Report"
+          echo "==================="
+          echo "Files validated: ${{ steps.changed-files.outputs.files }}"
+          echo "Validation status: ${{ job.status }}"
+
+          file_count=$(echo "${{ steps.changed-files.outputs.files }}" | wc -w)
+          echo "Total files: $file_count"
+
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ All validations passed!"
+          else
+            echo "❌ Some validations failed. Please check the errors above."
+          fi

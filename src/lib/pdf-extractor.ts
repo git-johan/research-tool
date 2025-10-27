@@ -4,7 +4,8 @@
  * Provides structured output similar to web content processor
  */
 
-import { PDFParse } from 'pdf-parse';
+// Use dynamic import to avoid webpack bundling issues in Next.js
+let PDFParse: any = null;
 
 export interface PDFMetadata {
   title?: string;
@@ -39,6 +40,12 @@ export async function extractPDFContent(pdfBuffer: Buffer): Promise<PDFExtractio
 
   try {
     console.log(`📄 Extracting content from PDF (${pdfBuffer.length} bytes)`);
+
+    // Dynamically import pdf-parse to avoid webpack issues
+    if (!PDFParse) {
+      const pdfParseModule = require('pdf-parse');
+      PDFParse = pdfParseModule.PDFParse;
+    }
 
     // Parse PDF with pdf-parse
     const parser = new PDFParse({ data: pdfBuffer });
