@@ -94,11 +94,12 @@ src/lib/processing/
 - [ ] Update upload interface to accept and validate all supported file types
 
 ### Stage 2: Content Extraction Service
-- [ ] Build reliable content extraction for all supported formats using established libraries:
+- [x] Build reliable content extraction for all supported formats using established libraries:
   - [x] PDF files (extend existing extraction capabilities) [#2](https://github.com/git-johan/research-tool/issues/2)
-  - [ ] Web content from HTML files *(research: cheerio, jsdom, playwright for extraction)*
-  - [ ] Plain text files with enhanced processing
-  - [ ] Markdown files with proper formatting preservation *(research: marked, markdown-it, remark)*
+  - [x] Web content from HTML files *(research: cheerio, jsdom, playwright for extraction)*
+  - [x] Plain text files with enhanced processing
+  - [x] Markdown files with proper formatting preservation *(research: marked, markdown-it, remark)*
+- [x] Create URL download API to download web content via URL [#4](https://github.com/git-johan/research-tool/issues/4)
 - [ ] Implement format detection and routing to appropriate extraction methods
 
 ### Stage 3: AI-Powered Content Formatting
@@ -142,3 +143,7 @@ src/lib/processing/
 - **Status**: Experimental Puppeteer-based solution works for 2/3 test PDFs but 66% success rate insufficient for production
 - **Experimental Work**: Available on `feature/pdf-image-extraction-experimental` branch for future reference
 - **Reason**: Reliability issues prevent production deployment; current text-based PDF extraction is sufficient for most use cases
+
+# future
+
+- [ ] Warn / prompt user if they want to update existing content if hash comparison reveals updated content
