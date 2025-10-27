@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { ExpandableDocumentRow } from "./ExpandableDocumentRow";
 
 interface StatusBreakdown {
   uploading: number;
@@ -20,11 +21,49 @@ interface ClientGroup {
 interface DocumentDoc {
   _id: string;
   filename: string;
-  status: string;
+  originalPath: string;
+  fileSizeBytes: number;
+  encoding: string;
+  mimeType: string;
   uploadedAt: Date;
   processedAt?: Date;
   chunkCount?: number;
+  status: "uploading" | "ready_for_processing" | "processing_embeddings" | "completed" | "failed";
   error?: string;
+  clientId: string;
+  documentType?: string;
+  tags?: string[];
+
+  // Web document specific fields
+  sourceType?: "web" | "upload";
+  originalUrl?: string;
+  scrapedAt?: Date;
+  contentHash?: string;
+
+  metadata: {
+    textPreview: string;
+    wordCount?: number;
+    lineCount?: number;
+
+    // Enhanced metadata from AI processing
+    title?: string;
+    content_type?: string;
+    topics?: string[];
+    summary?: string;
+    key_concepts?: string[];
+    question_types?: string[];
+    word_count?: number;
+    ai_processing_time_ms?: number;
+    source_content_type?: string;
+
+    // PDF-specific metadata
+    total_pages?: number;
+    pdf_author?: string;
+    pdf_creator?: string;
+    pdf_producer?: string;
+    pdf_creation_date?: string;
+    pdf_modification_date?: string;
+  };
 }
 
 interface MongoDBData {
@@ -142,24 +181,13 @@ export function MongoDBPanel({ data, compact = false }: MongoDBPanelProps) {
             Recent Documents {compact && `(${displayDocuments.length} of ${stats.recentDocuments.length})`}
           </div>
           {displayDocuments.map((doc) => (
-            <div
+            <ExpandableDocumentRow
               key={doc._id}
-              className="flex items-center justify-between p-2 bg-[var(--bg-secondary)] rounded"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-[var(--text-primary)] truncate">
-                  {doc.filename}
-                </div>
-                <div className="text-xs text-[var(--text-secondary)]">
-                  {formatDate(doc.uploadedAt)} • {doc.chunkCount || 0} chunks
-                </div>
-              </div>
-              <div className="ml-2">
-                <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(doc.status)}`}>
-                  {formatStatusDisplay(doc.status)}
-                </span>
-              </div>
-            </div>
+              document={doc}
+              formatDate={formatDate}
+              getStatusColor={getStatusColor}
+              formatStatusDisplay={formatStatusDisplay}
+            />
           ))}
         </div>
       )}
@@ -170,19 +198,15 @@ export function MongoDBPanel({ data, compact = false }: MongoDBPanelProps) {
           <div className="text-sm font-medium text-[var(--text-primary)] mb-2">
             Failed Documents ({stats.failedDocuments.length})
           </div>
-          <div className="space-y-2 max-h-40 overflow-y-auto">
+          <div className="space-y-2 max-h-60 overflow-y-auto">
             {stats.failedDocuments.map((doc) => (
-              <div
+              <ExpandableDocumentRow
                 key={doc._id}
-                className="p-2 bg-red-50 border border-red-200 rounded"
-              >
-                <div className="text-sm font-medium text-red-800">
-                  {doc.filename}
-                </div>
-                <div className="text-xs text-red-600">
-                  {doc.error || 'Unknown error'}
-                </div>
-              </div>
+                document={doc}
+                formatDate={formatDate}
+                getStatusColor={getStatusColor}
+                formatStatusDisplay={formatStatusDisplay}
+              />
             ))}
           </div>
         </div>

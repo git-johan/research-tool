@@ -4,40 +4,24 @@
 **Priority:** High | Medium | Low
 **Assignee:** @username
 **Epic:** [Link to epic if applicable]
+**GitHub Issue:** #[number]
 
-## Overview
-Brief description of what this feature does and why it's needed.
+## Problem
+Describe the user problem or business need this feature addresses. Focus on what users currently cannot do or what limitations they face.
 
-## Requirements
-### Functional Requirements
-- [ ] Requirement 1
-- [ ] Requirement 2
+## Solution
+Describe the desired capabilities and user experience. Focus on what the system should be able to do when complete. Include technical suggestions for research in parentheses.
 
-### Non-Functional Requirements
-- [ ] Performance criteria
-- [ ] Security requirements
-
-## Technical Design
-### Architecture
-Describe the technical approach
-
-### API Design
-```json
-{
-  "endpoint": "/api/example",
-  "method": "POST"
-}
-```
+Example: "Users can upload and search Microsoft Word documents *(research: mammoth, docx libraries)*"
 
 ## Implementation Plan
-- [ ] Task 1
-- [ ] Task 2
-- [ ] Testing
-- [ ] Documentation
+Break down into outcome-focused phases or milestones:
 
-## Acceptance Criteria
-- [ ] Criteria 1
-- [ ] Criteria 2
+- [ ] Outcome-focused task 1 *(research: suggested approaches)*
+- [ ] Outcome-focused task 2 *(research: alternative libraries)*
+- [ ] Integration and testing phase
+
+Focus on what gets built, not which specific libraries to use.
 
 ## Notes
-Additional context, decisions, or considerations
+Additional context, decisions, or considerations discovered during planning.

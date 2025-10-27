@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { Logger } from "@/lib/logger";
-import { initializeChromaCollection } from "@/lib/document-processing";
+import { initializeChromaCollection } from "@/lib/processing/indexer";
 
 interface DocumentChunkInfo {
   documentId: string;

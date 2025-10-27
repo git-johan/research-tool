@@ -96,7 +96,7 @@ src/lib/processing/
 ### Stage 2: Content Extraction Service
 - [ ] Build reliable content extraction for all supported formats using established libraries:
   - [x] PDF files (extend existing extraction capabilities) [#2](https://github.com/git-johan/research-tool/issues/2)
-  - [ ] Improve PDF extraction to support images
+  - [ ] Improve PDF extraction to support images [#3](https://github.com/git-johan/research-tool/issues/3)
     - [ ] Create MVP for image extraction *(research: pdf-img-convert, node-pdf-extract-image)*
     - [ ] Implement image extraction into PDF extractor (saves images to uploads folder)
     - [ ] Implement OCR to extract text from images *(research: Tesseract.js, node-tesseract-ocr)*

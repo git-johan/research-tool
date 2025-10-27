@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { Logger } from "@/lib/logger";
-import { searchDocumentChunks } from "@/lib/document-processing";
+import { searchDocumentChunks } from "@/lib/processing/indexer";
 
 export async function POST(req: NextRequest) {
   const requestId = Logger.createRequestId();

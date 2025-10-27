@@ -3,7 +3,7 @@
  * Simple script to test PDF text extraction functionality
  */
 
-import { extractPDFFromURL, extractPDFContent } from '../lib/pdf-extractor';
+import { extractPDFFromURL, extractPDFContent } from '../lib/processing/extractors/pdf-extractor';
 import * as fs from 'fs';
 
 /**

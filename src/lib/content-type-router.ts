@@ -3,7 +3,7 @@
  * Detects content type (PDF vs HTML) and routes to appropriate processor
  */
 
-import { extractPDFFromURL } from './pdf-extractor';
+import { extractPDFFromURL } from './processing/extractors/pdf-extractor';
 import { processWebContent } from '../scripts/web-content-processor';
 
 export interface UnifiedContent {

@@ -327,10 +327,36 @@ export interface DocumentDoc {
   clientId: string; // Associate with client browser
   documentType?: string; // Optional categorization (e.g., "interview", "research", "report")
   tags?: string[]; // Optional tags for organization
+
+  // Web document specific fields
+  sourceType?: "web" | "upload"; // Document source type
+  originalUrl?: string; // Source URL for web documents
+  scrapedAt?: Date; // When web content was retrieved
+  contentHash?: string; // Content hash for change detection
+
   metadata: {
     textPreview: string; // First 200 chars for display
     wordCount?: number;
     lineCount?: number;
+
+    // Enhanced metadata from AI processing (primarily for web documents)
+    title?: string;
+    content_type?: string;
+    topics?: string[];
+    summary?: string;
+    key_concepts?: string[];
+    question_types?: string[];
+    word_count?: number;
+    ai_processing_time_ms?: number;
+    source_content_type?: string;
+
+    // PDF-specific metadata (when applicable)
+    total_pages?: number;
+    pdf_author?: string;
+    pdf_creator?: string;
+    pdf_producer?: string;
+    pdf_creation_date?: string;
+    pdf_modification_date?: string;
   };
 }
 

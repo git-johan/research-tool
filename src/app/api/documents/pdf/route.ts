@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { Logger } from "@/lib/logger";
 import { getDb } from "@/lib/db";
-import { processAndStoreDocument } from "@/lib/document-processing";
+import { processAndStoreDocument } from "@/lib/processing/indexer";
 
 interface PDFDocumentResponse {
   success: boolean;
