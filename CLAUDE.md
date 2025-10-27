@@ -43,6 +43,65 @@ Suggest creating specs when user mentions:
 - Configuration changes
 - Dependency updates
 
+## 📝 Spec Writing Guidelines
+
+### Focus on Outcomes, Not Implementation
+When writing specs, emphasize **what** the system should achieve, not **how** to build it:
+
+**✅ Good - Outcome Focused:**
+- "Support uploading Microsoft Word documents"
+- "Extract structured content from web pages"
+- "Enable users to search across all document types"
+- "Provide real-time processing status updates"
+
+**❌ Bad - Technically Prescriptive:**
+- "Use mammoth library for DOCX processing"
+- "Implement cheerio for HTML extraction"
+- "Add OpenAI embeddings with text-embedding-3-large"
+- "Create WebSocket connections for status updates"
+
+### Template Section Guidance
+
+**Problem Section:**
+- Focus on user problems and business needs
+- Describe current limitations from user perspective
+- Avoid mentioning specific technical constraints
+- Example: "Users can't upload Word documents" vs. "API doesn't support DOCX MIME types"
+
+**Solution Section:**
+- Describe desired capabilities and user experiences
+- Focus on what the system should be able to do
+- Avoid specific technologies or implementation approaches
+- Example: "Users can upload and search any document type" vs. "Implement file type routing with mammoth and cheerio"
+
+**Implementation Plan:**
+- Break down into logical phases or stages
+- Focus on functional milestones, not technical tasks
+- Leave technical decisions for implementation time
+- Example: "Add document format support" vs. "Integrate mammoth library for DOCX parsing"
+
+**Acceptance Criteria:**
+- Focus on user-observable behaviors
+- Describe what users can do when feature is complete
+- Avoid technical implementation details
+- Example: "User can upload .docx files and find them in search" vs. "DOCX extractor returns valid JSON structure"
+
+### When to Make Technical Decisions
+
+**During Spec Creation:**
+- ❌ Don't choose specific libraries or frameworks
+- ❌ Don't design detailed technical architectures
+- ❌ Don't specify implementation patterns or approaches
+- ✅ Do focus on user capabilities and system behaviors
+
+**During Implementation:**
+- ✅ Research and choose appropriate libraries (mammoth, cheerio, etc.)
+- ✅ Design technical architecture based on requirements
+- ✅ Make implementation decisions based on constraints discovered during development
+- ✅ Update specs if implementation reveals new requirements or constraints
+
+**Key Principle:** Specs should be flexible enough to allow different technical approaches while being specific enough to define clear success criteria.
+
 ## 📋 Project Context
 
 ### Current Architecture
