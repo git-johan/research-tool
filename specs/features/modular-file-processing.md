@@ -99,7 +99,7 @@ src/lib/processing/
   - [x] Web content from HTML files *(research: cheerio, jsdom, playwright for extraction)*
   - [x] Plain text files with enhanced processing
   - [x] Markdown files with proper formatting preservation *(research: marked, markdown-it, remark)*
-- [x] Create URL download API to download web content via URL [#4](https://github.com/git-johan/research-tool/issues/4)
+- [ ] Create URL download API to download web content via URL [#4](https://github.com/git-johan/research-tool/issues/4)
 - [ ] Implement format detection and routing to appropriate extraction methods
 
 ### Stage 3: AI-Powered Content Formatting
