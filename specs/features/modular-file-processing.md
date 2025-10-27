@@ -1,6 +1,6 @@
 # Modular File Processing
 
-**Status:** Draft
+**Status:** In Progress
 **Priority:** High
 **Assignee:** @johanjosok
 **Epic:** Document Processing Refactor
