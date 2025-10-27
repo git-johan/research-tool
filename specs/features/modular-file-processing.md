@@ -96,11 +96,6 @@ src/lib/processing/
 ### Stage 2: Content Extraction Service
 - [ ] Build reliable content extraction for all supported formats using established libraries:
   - [x] PDF files (extend existing extraction capabilities) [#2](https://github.com/git-johan/research-tool/issues/2)
-  - [ ] **[ON HOLD]** Improve PDF extraction to support images *(experimental work on `feature/pdf-image-extraction-experimental` branch)*
-    - [ ] Create MVP for image extraction *(research: pdf-img-convert, node-pdf-extract-image)*
-    - [ ] Implement image extraction into PDF extractor (saves images to uploads folder)
-    - [ ] Implement OCR to extract text from images *(research: Tesseract.js, node-tesseract-ocr)*
-    - **Status**: Experimental Puppeteer-based solution works for 2/3 test PDFs but reliability issues prevent production use
   - [ ] Web content from HTML files *(research: cheerio, jsdom, playwright for extraction)*
   - [ ] Plain text files with enhanced processing
   - [ ] Markdown files with proper formatting preservation *(research: marked, markdown-it, remark)*
@@ -134,5 +129,16 @@ src/lib/processing/
 - **Constraints**: Must maintain backward compatibility with existing documents
 - **Performance**: New pipeline should be faster than current single-stage approach
 - **Testing**: Will require comprehensive testing of file format edge cases
-- **[ON HOLD] Image Extraction**: For presentation-style PDFs with minimal searchable text, the system will extract page images and optionally apply OCR to make visual content searchable *(experimental work on `feature/pdf-image-extraction-experimental` branch - 66% success rate insufficient for production)*
 - Removed CSV and Word doc support from requirements
+
+## Out of Scope
+
+### PDF Image Extraction
+- **Feature**: Improve PDF extraction to support images for presentation-style PDFs
+- **Tasks Considered**:
+  - MVP for image extraction *(research: pdf-img-convert, node-pdf-extract-image)*
+  - Implementation into PDF extractor (saves images to uploads folder)
+  - OCR to extract text from images *(research: Tesseract.js, node-tesseract-ocr)*
+- **Status**: Experimental Puppeteer-based solution works for 2/3 test PDFs but 66% success rate insufficient for production
+- **Experimental Work**: Available on `feature/pdf-image-extraction-experimental` branch for future reference
+- **Reason**: Reliability issues prevent production deployment; current text-based PDF extraction is sufficient for most use cases
