@@ -78,8 +78,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Sort files by modification date (newest first)
-    files.sort((a, b) => b.modified.getTime() - a.modified.getTime());
+    // Sort files by modification date (newest first), handling null/undefined dates
+    files.sort((a, b) => {
+      const aTime = a.modified?.getTime() ?? 0; // Fallback to epoch if no date
+      const bTime = b.modified?.getTime() ?? 0;
+      return bTime - aTime;
+    });
 
     logger.info("Filesystem inspection completed", {
       metadata: { totalFiles: files.length, totalSize }

@@ -1,0 +1,36 @@
+30 year old refugee consultant
+
+### 1. **Does the user get enough information to trust the estimated future value?**
+
+- **Insights:**
+  - The user finds the estimated resale value feature intriguing but expresses skepticism about its accuracy without further details on how the estimate is calculated.
+  - They feel the value estimate is more credible if backed by specific data (e.g., historical sales for that exact jacket or similar items).
+  - The inclusion of a resale value range (e.g., 3200–4000 NOK) makes the feature more concrete, but the user perceives it as "too good to be true" without a detailed explanation.
+
+---
+
+### 2. **Does the user get enough information to trust the comparisons to other products in the same category?**
+
+- **Insights:**
+  - The user appreciates the comparison feature as it provides a broader perspective, but they emphasize the importance of understanding how the comparisons are generated (e.g., specific data or general category averages).
+  - They value insights into resale popularity and material durability when comparing products but are cautious about over-reliance on generalized scores.
+  - Personal preferences (e.g., familiarity with a brand) still heavily influence their choices, even when a competing product scores higher.
+
+---
+
+### 3. **Does the user get enough information to trust the scores?**
+
+- **Insights:**
+  - Scores like "8/10 resale value" feel less specific and actionable compared to a clear resale price range. The user prefers concrete figures over abstract ratings.
+  - Trust in the scores increases if the methodology behind the rating is transparent, particularly if it is tied to data from specific transactions.
+  - The user is likely to explore "Tell me more" links if they feel the scores require additional explanation or validation.
+
+---
+
+### 4. **How does the feature in general impact the user's purchase decision?**
+
+- **Insights:**
+  - The feature helps justify expensive purchases by highlighting resale potential, making the financial commitment feel less risky.
+  - While the feature does not always eliminate hesitation, it positively influences the decision-making process, particularly for users who value resale opportunities.
+  - Users with strong pre-existing preferences (e.g., brand loyalty) are less swayed by the feature but still appreciate its added value in providing reassurance about quality and future usability.
+  - The feature might prompt some users to consider buying a more expensive product or even searching for second-hand options as a cost-saving measure.

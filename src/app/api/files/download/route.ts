@@ -82,6 +82,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Check for existing download
+    const db = await getDb();
+    const collection = db.collection("documents");
+
+    const existingDownload = await collection.findOne({
+      sourceUrl: url,
+      sourceType: "download"
+    });
+
+    if (existingDownload) {
+      logger.info("URL already downloaded, returning existing document", {
+        metadata: { url, existingFileId: existingDownload._id }
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          fileId: existingDownload._id,
+          filePath: existingDownload.originalPath,
+          filename: existingDownload.filename,
+          metadata: {
+            sourceUrl: url,
+            downloadedAt: existingDownload.downloadedAt.toISOString(),
+            contentType: existingDownload.contentType,
+            fileSizeKB: Math.round(existingDownload.fileSizeBytes / 1024),
+            downloadTimeMs: 0 // Existing file, no download time
+          },
+          message: "File already exists, returning existing download"
+        } as DownloadResponse & { message: string }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    }
+
     // Download the file
     logger.info("Starting file download", {
       metadata: { url }
@@ -108,9 +144,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Store download record in MongoDB
-    const db = await getDb();
-    const collection = db.collection("documents");
+    // Store download record in MongoDB (reuse db and collection from duplicate check)
 
     const fileId = crypto.randomUUID();
     const downloadRecord = {

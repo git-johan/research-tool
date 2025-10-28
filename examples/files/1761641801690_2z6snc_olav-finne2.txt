@@ -1,0 +1,36 @@
+35 year old sofware engineer
+
+### 1. **Does the user get enough information to trust the estimated future value?**
+
+- **Insights:**
+  - The user finds the future resale value estimate intriguing but questions the reliability of the underlying data. They express a desire to see concrete backing for the estimate, such as historical sales data or similar transactions.
+  - The user is cautious about resale predictions for lesser-known brands or products with limited data. A well-known brand is perceived as easier to resell and more credible in its estimated value.
+  - Larger resale value ranges (e.g., due to market volatility) raise concerns about the accuracy of predictions, especially for niche or lesser-known items.
+
+---
+
+### 2. **Does the user get enough information to trust the comparisons to other products in the same category?**
+
+- **Insights:**
+  - Comparisons within the same category are meaningful to the user, particularly when focused on price stability and resale trends over time.
+  - The user values clarity on the resale performance of different brands or models but questions whether the comparisons account for market variability, such as brand reputation or design consistency over time.
+  - A detailed explanation of why one product performs better in resale (e.g., stable price history, brand strength) would strengthen trust in comparisons.
+
+---
+
+### 3. **Does the user get enough information to trust the scores?**
+
+- **Insights:**
+  - The user finds the scores interesting but insufficient without supporting details. They emphasize the importance of understanding how the scores are calculated.
+  - Transparency in data sources and scoring methodology (e.g., material durability, resale history) would significantly enhance trust.
+  - Lower scores (e.g., below 6/10) might discourage purchases, particularly if the user cannot verify why the product scored poorly.
+
+---
+
+### 4. **How does the feature in general impact the user's purchase decision?**
+
+- **Insights:**
+  - The feature is seen as helpful for justifying high-cost purchases by minimizing perceived financial risk if the product can be resold later.
+  - It is particularly impactful for users who are undecided or hesitant about spending on premium products, providing reassurance through resale potential.
+  - For experienced or confident buyers, the feature serves as an additional point of validation but may not significantly influence decisions if they already have a strong preference for a product.
+  - Resale information might be more relevant for higher-priced items or those considered more of a luxury purchase, while it holds less sway for utilitarian or low-cost goods.

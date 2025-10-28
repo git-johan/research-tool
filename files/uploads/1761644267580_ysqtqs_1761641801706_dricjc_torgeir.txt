@@ -1,0 +1,47 @@
+36 year old school teacher
+
+# Interview #2
+
+## **Decision-making process without Tings Convert**
+
+- The user prioritizes **practical aspects** like price, size, and availability when choosing products.
+- There is emphasis on **visual representation**, preferring to see products modeled for better evaluation.
+- Environmental considerations, such as the inability to discard clothes in regular waste, indirectly influence decisions.
+- The user evaluates **brand reputation and durability** but doesn’t typically consider second-hand resale potential when purchasing new items.
+
+**2. How Tings Convert affects decision-making**
+
+- The presence of Tings Convert helps the user **justify purchases** by emphasizing resale potential, making high-priced items feel more viable.
+- It introduces the idea of **circularity** in consumption, which aligns with growing environmental consciousness.
+- The user notes that integrating Tings Convert into the shopping process could streamline **future resale**, making it an appealing feature.
+- The feature positively influences decision-making if it is perceived as **user-friendly and accurate**.
+
+**3. Most important aspects of Tings Convert**
+
+- **“Gjensalgsverdi” (Resale Value in 2 years):** The user sees this as the most impactful metric, aiding in justifying high-cost purchases.
+- **“Salgstid” (Time to Sell):** Viewed as a practical metric, though less critical than resale value.
+- **“Materialscore”:** Considered informative but secondary compared to resale value and ease of resale.
+- Showing “Estimert verdi om 2 år” (Estimated Value in 2 Years) instead of “Gjensalgbarhet” was well-received for its clarity and focus.
+
+**4. Trust in Tings Convert**
+
+- The user expressed **moderate trust (80%)** in the information provided, with some skepticism regarding whether factors like color and design were accounted for.
+- The inclusion of brand-specific data (e.g., Brynje) lends credibility but requires transparency in methodology for full trust.
+
+**5. Dislikes or drawbacks**
+
+- Skepticism about the algorithm’s comprehensiveness, particularly its ability to account for **subjective factors** like aesthetic preferences (e.g., color).
+- Concerns about the feature being too complex or overwhelming for users unfamiliar with second-hand markets.
+- Some features, like “Materialscore,” may feel unnecessary or less relevant for decision-making compared to others.
+
+**6. Key insights for future iterations**
+
+- Focus on **Gjensalgsverdi** as the primary metric, with clear, straightforward language like “Estimert verdi om 2 år.”
+- Build trust by providing **transparency about data sources** and how resale potential is calculated.
+- Simplify the interface to avoid overwhelming users, highlighting key metrics most relevant to decision-making.
+- Explore integration with **resale platforms** (e.g., Finn) to enhance the perceived value and practicality of Tings Convert.
+- Address concerns about visual and subjective factors (e.g., style, color) to improve perceived accuracy and user trust.
+
+# Designs
+
+![image.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/5547bd14-87d8-45b4-beb9-00974cf0ac7c/8db72b0a-7f75-4b75-a304-58ce26646219/image.png)

@@ -30,7 +30,8 @@ type UploadError = {
 type FileUploadResult = {
   filename: string;
   success: boolean;
-  documentId?: string;
+  fileId?: string;
+  filePath?: string;
   metadata?: {
     title?: string;
     author?: string;
@@ -39,9 +40,14 @@ type FileUploadResult = {
     extractionTime: number;
     createdAt?: Date;
     modifiedAt?: Date;
+    contentType?: string;
+    fileSizeKB?: number;
+    sourceType?: string;
+    uploadedAt?: string;
   };
   error?: string;
   errorCode?: string;
+  message?: string;
 };
 
 type MultipleFileUploadResponse = {
@@ -135,13 +141,14 @@ function chunkArray<T>(array: T[], batchSize: number): T[][] {
   return batches;
 }
 
-// Check if filename already exists for this client
+// Check if filename already exists for this client and return full metadata
 async function checkDuplicateFilename(filename: string, clientId: string): Promise<any | null> {
   try {
     const db = await import("@/lib/db").then(m => m.getDb());
     const existingFile = await db.collection("documents").findOne({
       filename: filename,
-      clientId: clientId
+      clientId: clientId,
+      sourceType: "upload"
     });
     return existingFile;
   } catch (error) {
@@ -185,11 +192,29 @@ async function processSingleFile(
     // Check for duplicate filename
     const existingFile = await checkDuplicateFilename(file.name, clientId);
     if (existingFile) {
+      logger.info(`File "${file.name}" already exists, returning existing file metadata`, {
+        metadata: { existingFileId: existingFile._id, filename: file.name }
+      });
+
       return {
         filename: file.name,
-        success: false,
-        error: `File "${file.name}" already exists. Please use a different filename or delete the existing file first.`,
-        errorCode: "DUPLICATE_FILENAME"
+        success: true,
+        fileId: existingFile._id,
+        filePath: existingFile.originalPath,
+        metadata: {
+          title: existingFile.metadata?.title,
+          author: existingFile.metadata?.author,
+          wordCount: existingFile.metadata?.wordCount || 0,
+          pageCount: existingFile.metadata?.pageCount,
+          extractionTime: existingFile.metadata?.extractionTime || 0,
+          createdAt: existingFile.metadata?.createdAt,
+          modifiedAt: existingFile.metadata?.modifiedAt,
+          contentType: existingFile.contentType,
+          fileSizeKB: Math.round(existingFile.fileSizeBytes / 1024),
+          sourceType: existingFile.sourceType || "upload",
+          uploadedAt: existingFile.uploadedAt?.toISOString() || existingFile.createdAt?.toISOString()
+        },
+        message: "File already exists, returning existing upload"
       };
     }
 
@@ -281,6 +306,8 @@ async function processSingleFile(
             "metadata.extractionTime": metadata.extractionTime,
             "metadata.createdAt": metadata.createdAt,
             "metadata.modifiedAt": metadata.modifiedAt,
+            "sourceType": "upload",
+            "uploadedAt": new Date(),
             "extractedContent": {
               text: text,
               preview: textPreview,
@@ -305,7 +332,8 @@ async function processSingleFile(
       return {
         filename: file.name,
         success: true,
-        documentId: document._id,
+        fileId: document._id,
+        filePath: filePath,
         metadata: {
           title: metadata.title,
           author: metadata.author,
@@ -313,7 +341,11 @@ async function processSingleFile(
           pageCount: metadata.pageCount,
           extractionTime: metadata.extractionTime,
           createdAt: metadata.createdAt,
-          modifiedAt: metadata.modifiedAt
+          modifiedAt: metadata.modifiedAt,
+          contentType: file.type,
+          fileSizeKB: Math.round(file.size / 1024),
+          sourceType: "upload",
+          uploadedAt: new Date().toISOString()
         }
       };
 

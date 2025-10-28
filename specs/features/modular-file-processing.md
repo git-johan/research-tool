@@ -1,10 +1,31 @@
 # Modular File Processing
 
-**Status:** Review
+**Status:** In Progress - Stage 2 Complete
 **Priority:** High
 **Assignee:** @johanjosok
 **Epic:** Document Processing Refactor
-**GitHub Issue:** #1
+**GitHub Project:** #1
+**Completed:** Stage 1 (Universal Upload) + Stage 2 (Content Extraction) + API Standardization
+**Next:** Stage 3 (AI Formatting)
+
+## Progress Summary
+
+### ✅ Completed Work
+- **Stage 1: Universal File Upload** - Multi-format upload API with validation
+- **Stage 2: Content Extraction** - PDF, HTML, text, markdown extraction pipeline
+- **API Structure Refactor** - Clean separation of files vs documents namespaces
+- **API Response Standardization** - Unified metadata and duplicate handling
+- **Folder Organization** - Structured file storage by acquisition method
+- **Database Schema** - Enhanced with status progression and source tracking
+
+### 🚧 Current Focus
+- **Stage 3: AI-Powered Content Formatting** - Next major milestone
+
+### 📋 Remaining Work
+- Stage 3: AI formatting service for clean markdown output
+- Stage 4: Vector indexing integration
+- Document CRUD operations (#7)
+- Migration and integration testing
 
 ## Problem
 
@@ -99,14 +120,16 @@ src/lib/processing/
   - [x] Web content from HTML files *(research: cheerio, jsdom, playwright for extraction)*
   - [x] Plain text files with enhanced processing
   - [x] Markdown files with proper formatting preservation *(research: marked, markdown-it, remark)*
-- [ ] Create URL download API to download web content via URL [#4](https://github.com/git-johan/research-tool/issues/4)
-- [ ] API structure and naming consistency refactor [#6](https://github.com/git-johan/research-tool/issues/6)
+- [x] Create URL download API to download web content via URL [#4](https://github.com/git-johan/research-tool/issues/4)
+- [x] API structure and naming consistency refactor [#6](https://github.com/git-johan/research-tool/issues/6)
+- [x] API response standardization: unified metadata and duplicate handling [#8](https://github.com/git-johan/research-tool/issues/8)
+- [ ] Downloading a file from a url that is uploaded creates duplicates (or at least the API doesnt return duplicate on first request)
 - [ ] Implement format detection and routing to appropriate extraction methods
 
 ### Stage 3: AI-Powered Content Formatting
 - [ ] Develop AI-powered service to create clean, consistent markdown output *(research: current OpenAI models, Claude, local options)*
 - [ ] Ensure complex elements (tables, lists, formatting) are handled accurately
-- [ ] Establish reliable storage and retrieval of formatted content
+- [ ] Establish reliable storage and retrieval of formatted content [#7](https://github.com/git-johan/research-tool/issues/7)
 
 ### Stage 4: Vector Indexing Service
 - [ ] Create efficient vector indexing that integrates with existing embedding pipeline *(research: current embedding models, chunking strategies)*
@@ -119,6 +142,12 @@ src/lib/processing/
 - [ ] Update search functionality to work seamlessly with new document processing
 - [ ] Build comprehensive error handling with retry capabilities for failed stages *(research: exponential backoff, circuit breaker patterns)*
 - [ ] Develop thorough testing coverage for each processing stage
+
+### Required for Project Completion
+- [ ] Document CRUD Operations and Unified Storage [#7](https://github.com/git-johan/research-tool/issues/7)
+  - Complete document management API with cascade delete
+  - Unified storage/retrieval for formatted content
+  - Required before closing modular file processing project
 
 ## Notes
 

@@ -82,13 +82,32 @@ export async function GET(req: NextRequest) {
       clientData.statuses[doc.status]++;
     });
 
+    // Helper function to get upload/download date safely
+    const getUploadDate = (doc: any): Date | null => {
+      // Handle both uploadedAt (upload API) and downloadedAt (download API)
+      const dateField = doc.uploadedAt || doc.downloadedAt;
+      return dateField ? new Date(dateField) : null;
+    };
+
     // Convert to ClientGroup array
-    const clientGroups: ClientGroup[] = Array.from(clientMap.entries()).map(([clientId, data]) => ({
-      clientId,
-      documentCount: data.documents.length,
-      latestUpload: new Date(Math.max(...data.documents.map(d => d.uploadedAt.getTime()))),
-      statuses: data.statuses
-    })).sort((a, b) => b.latestUpload.getTime() - a.latestUpload.getTime());
+    const clientGroups: ClientGroup[] = Array.from(clientMap.entries()).map(([clientId, data]) => {
+      // Get all valid upload dates for this client
+      const validDates = data.documents
+        .map(d => getUploadDate(d))
+        .filter(date => date !== null)
+        .map(date => date!.getTime());
+
+      const latestUpload = validDates.length > 0
+        ? new Date(Math.max(...validDates))
+        : new Date(0); // Fallback to epoch if no valid dates
+
+      return {
+        clientId,
+        documentCount: data.documents.length,
+        latestUpload,
+        statuses: data.statuses
+      };
+    }).sort((a, b) => b.latestUpload.getTime() - a.latestUpload.getTime());
 
     // Get recent documents (last 10)
     const recentDocuments = allDocuments.slice(0, 10);
@@ -105,15 +124,28 @@ export async function GET(req: NextRequest) {
 
     // Calculate average processing time for completed documents
     const completedDocs = allDocuments.filter(doc =>
-      doc.status === 'ready' && doc.processedAt && doc.uploadedAt
+      doc.status === 'ready' && doc.processedAt && (doc.uploadedAt || doc.downloadedAt)
     );
 
     let averageProcessingTime: number | undefined;
     if (completedDocs.length > 0) {
-      const totalProcessingTime = completedDocs.reduce((sum, doc) => {
-        return sum + (doc.processedAt!.getTime() - doc.uploadedAt.getTime());
-      }, 0);
-      averageProcessingTime = totalProcessingTime / completedDocs.length;
+      // Filter documents that have both upload and processed dates
+      const validProcessingTimes = completedDocs
+        .map(doc => {
+          const uploadDate = getUploadDate(doc);
+          const processedDate = doc.processedAt ? new Date(doc.processedAt) : null;
+
+          if (uploadDate && processedDate) {
+            return processedDate.getTime() - uploadDate.getTime();
+          }
+          return null;
+        })
+        .filter(time => time !== null);
+
+      if (validProcessingTimes.length > 0) {
+        const totalProcessingTime = validProcessingTimes.reduce((sum, time) => sum + time!, 0);
+        averageProcessingTime = totalProcessingTime / validProcessingTimes.length;
+      }
     }
 
     const stats: ProcessingStats = {
