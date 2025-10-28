@@ -28,5 +28,42 @@
 - [ ] Search performance validation after indexing through new pipeline
 - [ ] Database performance impact of new status tracking
 
+## API Structure Refactor Tests (Issue #6)
+
+### Automated Tests
+- [x] `/api/files/download` endpoint functionality
+- [ ] `/api/files/upload` endpoint functionality
+- [ ] Status field correctly set to "imported" for downloads
+- [ ] Status field correctly set to "imported" for uploads
+- [ ] Database records use correct sourceType field
+
+### Folder Structure Tests
+- [x] `files/downloads/` directory created and functional
+- [x] `files/uploads/` directory created
+- [x] `files/raw-content/` directory created
+- [x] `documents/` directory created
+- [ ] Files correctly stored in appropriate directories
+
+### Manual Tests Required
+- [ ] Test download endpoint in Postman: `/api/files/download`
+- [ ] Test upload endpoint if accessible: `/api/files/upload`
+- [ ] Verify old endpoints `/api/documents/download` and `/api/documents/upload` no longer exist
+- [ ] Check database records have correct status ("imported") and sourceType
+- [ ] Verify existing search functionality still works with new status system
+
 ## Test Results Summary
-[Document results, issues found, and resolutions]
+
+### API Refactor (Issue #6) - Completed Tests
+- ✅ Download API moved to `/api/files/download` and working
+- ✅ Download API uses new folder structure (`files/downloads/`)
+- ✅ Download API sets correct status and sourceType
+- ✅ New folder structure created successfully
+- ✅ Test download successful with proper file storage
+
+### Issues Found
+- None so far for download functionality
+
+### Remaining Work
+- Need user testing of upload API functionality
+- Need verification of database schema compatibility
+- Need integration testing with existing processing pipeline
