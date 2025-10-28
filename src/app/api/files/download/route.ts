@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { Logger } from "@/lib/logger";
 import { getDb } from "@/lib/db";
 import { downloadFile, isValidDownloadUrl, DownloadMetadata } from "@/lib/url-downloader";
+import { calculateFileHash, findExistingDocument, DuplicateType } from "@/lib/duplicate-detection";
 import path from "path";
 import crypto from "crypto";
 
@@ -26,6 +27,8 @@ interface DownloadResponse {
     fileSizeKB: number;
     downloadTimeMs: number;
   };
+  duplicateType?: DuplicateType;
+  message?: string;
   error?: string;
 }
 
@@ -82,35 +85,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check for existing download
-    const db = await getDb();
-    const collection = db.collection("documents");
+    // Check for existing duplicates (URL-based first, content-based after download)
+    const urlDuplicate = await findExistingDocument({ sourceUrl: url });
 
-    const existingDownload = await collection.findOne({
-      sourceUrl: url,
-      sourceType: "download"
-    });
-
-    if (existingDownload) {
+    if (urlDuplicate.duplicate) {
       logger.info("URL already downloaded, returning existing document", {
-        metadata: { url, existingFileId: existingDownload._id }
+        metadata: { url, existingFileId: urlDuplicate.duplicate._id, duplicateType: urlDuplicate.duplicateType }
       });
 
       return new Response(
         JSON.stringify({
           success: true,
-          fileId: existingDownload._id,
-          filePath: existingDownload.originalPath,
-          filename: existingDownload.filename,
+          fileId: urlDuplicate.duplicate._id,
+          filePath: urlDuplicate.duplicate.originalPath,
+          filename: urlDuplicate.duplicate.filename,
           metadata: {
             sourceUrl: url,
-            downloadedAt: existingDownload.downloadedAt.toISOString(),
-            contentType: existingDownload.contentType,
-            fileSizeKB: Math.round(existingDownload.fileSizeBytes / 1024),
+            downloadedAt: urlDuplicate.duplicate.downloadedAt?.toISOString() || urlDuplicate.duplicate.createdAt?.toISOString(),
+            contentType: urlDuplicate.duplicate.contentType,
+            fileSizeKB: Math.round(urlDuplicate.duplicate.fileSizeBytes / 1024),
             downloadTimeMs: 0 // Existing file, no download time
           },
-          message: "File already exists, returning existing download"
-        } as DownloadResponse & { message: string }),
+          duplicateType: urlDuplicate.duplicateType,
+          message: urlDuplicate.message || "File already exists, returning existing download"
+        } as DownloadResponse),
         {
           status: 200,
           headers: { "Content-Type": "application/json" }
@@ -144,7 +142,67 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Store download record in MongoDB (reuse db and collection from duplicate check)
+    // Calculate content hash for cross-source duplicate detection
+    let contentHash: string | undefined;
+    try {
+      contentHash = await calculateFileHash(downloadResult.filePath!);
+      logger.info("Calculated content hash for downloaded file", {
+        metadata: { url, contentHash, filePath: downloadResult.filePath }
+      });
+
+      // Check for content-based duplicates now that we have the hash
+      const contentDuplicate = await findExistingDocument({ contentHash });
+      if (contentDuplicate.duplicate) {
+        logger.info("Found content duplicate after download, returning existing file", {
+          metadata: {
+            url,
+            contentHash,
+            existingFileId: contentDuplicate.duplicate._id,
+            duplicateType: contentDuplicate.duplicateType
+          }
+        });
+
+        // Clean up the downloaded file since we have a duplicate
+        try {
+          await import("fs/promises").then(fs => fs.unlink(downloadResult.filePath!));
+        } catch (cleanupError) {
+          logger.warn("Failed to clean up duplicate downloaded file", {
+            metadata: { filePath: downloadResult.filePath, error: cleanupError }
+          });
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            fileId: contentDuplicate.duplicate._id,
+            filePath: contentDuplicate.duplicate.originalPath,
+            filename: contentDuplicate.duplicate.filename,
+            metadata: {
+              sourceUrl: url,
+              downloadedAt: contentDuplicate.duplicate.downloadedAt?.toISOString() || contentDuplicate.duplicate.createdAt?.toISOString(),
+              contentType: contentDuplicate.duplicate.contentType,
+              fileSizeKB: Math.round(contentDuplicate.duplicate.fileSizeBytes / 1024),
+              downloadTimeMs: downloadResult.metadata.downloadTime
+            },
+            duplicateType: contentDuplicate.duplicateType,
+            message: contentDuplicate.message
+          } as DownloadResponse),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          }
+        );
+      }
+    } catch (hashError) {
+      // Log error but continue without content hash
+      logger.warn("Failed to calculate content hash, proceeding without content-based duplicate detection", {
+        metadata: { url, error: hashError instanceof Error ? hashError.message : 'Unknown error' }
+      });
+    }
+
+    // Store download record in MongoDB
+    const db = await getDb();
+    const collection = db.collection("documents");
 
     const fileId = crypto.randomUUID();
     const downloadRecord = {
@@ -157,6 +215,7 @@ export async function POST(req: NextRequest) {
       fileSizeBytes: downloadResult.metadata.fileSizeBytes,
       status: "imported" as const,
       sourceType: "download" as const,
+      ...(contentHash && { contentHash }), // Add content hash if available
 
       // Download-specific metadata
       metadata: {

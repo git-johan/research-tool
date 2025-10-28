@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { Logger } from "@/lib/logger";
 import { createDocument, updateDocumentStatus } from "@/lib/db";
 import { extractContent, getSupportedExtensions } from "@/lib/processing/extractors";
+import { calculateBufferHash, findExistingDocument, DuplicateType } from "@/lib/duplicate-detection";
 import fs from "fs/promises";
 import path from "path";
 
@@ -45,6 +46,7 @@ type FileUploadResult = {
     sourceType?: string;
     uploadedAt?: string;
   };
+  duplicateType?: DuplicateType;
   error?: string;
   errorCode?: string;
   message?: string;
@@ -141,22 +143,7 @@ function chunkArray<T>(array: T[], batchSize: number): T[][] {
   return batches;
 }
 
-// Check if filename already exists for this client and return full metadata
-async function checkDuplicateFilename(filename: string, clientId: string): Promise<any | null> {
-  try {
-    const db = await import("@/lib/db").then(m => m.getDb());
-    const existingFile = await db.collection("documents").findOne({
-      filename: filename,
-      clientId: clientId,
-      sourceType: "upload"
-    });
-    return existingFile;
-  } catch (error) {
-    // If database check fails, allow upload to proceed
-    console.warn(`Failed to check for duplicate filename: ${error}`);
-    return null;
-  }
-}
+// Note: checkDuplicateFilename function removed - now using cross-source duplicate detection
 
 // Process a single file and return result
 async function processSingleFile(
@@ -189,37 +176,68 @@ async function processSingleFile(
       };
     }
 
-    // Check for duplicate filename
-    const existingFile = await checkDuplicateFilename(file.name, clientId);
-    if (existingFile) {
-      logger.info(`File "${file.name}" already exists, returning existing file metadata`, {
-        metadata: { existingFileId: existingFile._id, filename: file.name }
+    // Read file buffer for content hash calculation
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    // Calculate content hash for cross-source duplicate detection
+    let contentHash: string;
+    try {
+      contentHash = calculateBufferHash(buffer);
+      logger.info("Calculated content hash for uploaded file", {
+        metadata: { filename: file.name, contentHash }
+      });
+    } catch (hashError) {
+      const errorMessage = hashError instanceof Error ? hashError.message : 'Unknown hash error';
+      logger.warn("Failed to calculate content hash, proceeding without content-based duplicate detection", {
+        metadata: { filename: file.name, error: errorMessage }
+      });
+
+      return {
+        filename: file.name,
+        success: false,
+        error: "Failed to process file content",
+        errorCode: "HASH_CALCULATION_ERROR"
+      };
+    }
+
+    // Check for existing duplicates (content-based first, then filename-based)
+    const existingFile = await findExistingDocument({
+      contentHash,
+      filename: file.name,
+      clientId
+    });
+
+    if (existingFile.duplicate) {
+      logger.info(`Duplicate file found, returning existing file metadata`, {
+        metadata: {
+          existingFileId: existingFile.duplicate._id,
+          filename: file.name,
+          duplicateType: existingFile.duplicateType
+        }
       });
 
       return {
         filename: file.name,
         success: true,
-        fileId: existingFile._id,
-        filePath: existingFile.originalPath,
+        fileId: existingFile.duplicate._id,
+        filePath: existingFile.duplicate.originalPath,
         metadata: {
-          title: existingFile.metadata?.title,
-          author: existingFile.metadata?.author,
-          wordCount: existingFile.metadata?.wordCount || 0,
-          pageCount: existingFile.metadata?.pageCount,
-          extractionTime: existingFile.metadata?.extractionTime || 0,
-          createdAt: existingFile.metadata?.createdAt,
-          modifiedAt: existingFile.metadata?.modifiedAt,
-          contentType: existingFile.contentType,
-          fileSizeKB: Math.round(existingFile.fileSizeBytes / 1024),
-          sourceType: existingFile.sourceType || "upload",
-          uploadedAt: existingFile.uploadedAt?.toISOString() || existingFile.createdAt?.toISOString()
+          title: existingFile.duplicate.metadata?.title,
+          author: existingFile.duplicate.metadata?.author,
+          wordCount: existingFile.duplicate.metadata?.wordCount || 0,
+          pageCount: existingFile.duplicate.metadata?.pageCount,
+          extractionTime: existingFile.duplicate.metadata?.extractionTime || 0,
+          createdAt: existingFile.duplicate.metadata?.createdAt,
+          modifiedAt: existingFile.duplicate.metadata?.modifiedAt,
+          contentType: existingFile.duplicate.contentType,
+          fileSizeKB: Math.round(existingFile.duplicate.fileSizeBytes / 1024),
+          sourceType: existingFile.duplicate.sourceType || "upload",
+          uploadedAt: existingFile.duplicate.uploadedAt?.toISOString() || existingFile.duplicate.createdAt?.toISOString()
         },
-        message: "File already exists, returning existing upload"
+        duplicateType: existingFile.duplicateType,
+        message: existingFile.message || "File already exists, returning existing file"
       };
     }
-
-    // Read file buffer
-    const buffer = Buffer.from(await file.arrayBuffer());
 
     // Generate unique filename to avoid conflicts
     const timestamp = Date.now();
@@ -308,6 +326,7 @@ async function processSingleFile(
             "metadata.modifiedAt": metadata.modifiedAt,
             "sourceType": "upload",
             "uploadedAt": new Date(),
+            "contentHash": contentHash, // Add content hash for cross-source duplicate detection
             "extractedContent": {
               text: text,
               preview: textPreview,

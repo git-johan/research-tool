@@ -123,7 +123,7 @@ src/lib/processing/
 - [x] Create URL download API to download web content via URL [#4](https://github.com/git-johan/research-tool/issues/4)
 - [x] API structure and naming consistency refactor [#6](https://github.com/git-johan/research-tool/issues/6)
 - [x] API response standardization: unified metadata and duplicate handling [#8](https://github.com/git-johan/research-tool/issues/8)
-- [ ] Downloading a file from a url that is uploaded creates duplicates (or at least the API doesnt return duplicate on first request)
+- [x] Cross-source duplicate detection: prevent duplicates between upload and download [#9](https://github.com/git-johan/research-tool/issues/9)
 - [ ] Implement format detection and routing to appropriate extraction methods
 
 ### Stage 3: AI-Powered Content Formatting
