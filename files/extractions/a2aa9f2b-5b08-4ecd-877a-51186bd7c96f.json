@@ -1,0 +1,34 @@
+{
+  "document": {
+    "fileId": "a2aa9f2b-5b08-4ecd-877a-51186bd7c96f",
+    "filename": "1761641801706_68ofj7_anthoni.txt",
+    "status": "imported",
+    "sourceType": "upload",
+    "mimeType": "text/plain",
+    "fileSizeBytes": 4006,
+    "contentHash": "b81efb8bf9ab2fb1740e03d18b32ac9690d4f732d86dbb345ec8b48f0e576382",
+    "clientId": "test",
+    "uploadedAt": "2025-10-28T12:24:40.822Z"
+  },
+  "file": {
+    "originalPath": "/Users/johanjosok/Documents/Code/research-tool/files/uploads/1761654280820_hlnf4c_1761641801706_68ofj7_anthoni.txt",
+    "exists": true,
+    "actualSize": 4006,
+    "createdAt": "2025-10-28T12:24:40.820Z",
+    "modifiedAt": "2025-10-28T12:24:40.821Z"
+  },
+  "extraction": {
+    "extractedAt": "2025-10-28T12:25:13.107Z",
+    "extractionTime": 6,
+    "contentType": "text/plain",
+    "text": "# Interview #3\n\n38 year old software engineer\n\n**1. Decision-Making Process Without Tings Convert**\n\n- The user typically evaluates product reviews, price comparisons, and quality.\n- Price and potential discounts are primary concerns.\n- They value durability but don’t initially consider resale potential, especially for items like jackets.\n- For more significant purchases, such as an electric bike, resale value and condition are key considerations.\n- The user associates high-quality products with lasting value and often compares items across marketplaces.\n\n**2. How Tings Convert Affects Decision-Making**\n\n- Tings Convert makes the user think more about a product’s resale value and lifespan.\n- Seeing resale metrics (e.g., second-hand value and selling time) reassures them about the product’s quality and future utility.\n- The inclusion of resale data adds confidence, especially for brands or products the user is less familiar with.\n- The user feels more informed about their choice, seeing it as a safer and more rational decision.\n\n**3. Most Important Aspects of Tings Convert**\n\n- **Resale Value (“Gjensalgsverdi”)**: The user finds this highly reassuring as it indicates the product’s quality and expected longevity. Knowing they could recoup 40–60% of the original price positively influences their decision.\n- **Selling Time (“Salgstid”)**: They appreciate this information but prioritize it less than resale value. Quick selling times for popular items add to their confidence.\n- **Material Score (“Materialscore”)**: While interesting, it is the least significant factor for the user’s decision-making. They focus more on tangible resale metrics.\n- Alternative metric: **“Estimert verdi om 2 år”** resonates as it directly relates to potential financial outcomes.\n\n**4. Trust in Tings Convert**\n\n- The user expresses a reasonable level of trust in the tool, particularly when it supports decisions for unfamiliar brands.\n- Trust increases when Tings Convert aligns with their perception of the product as high quality.\n- Metrics like resale value are seen as reliable indicators of product durability and popularity.\n- Trust may waver if scores are ambiguous or too low without clear explanations.\n\n**5. Dislikes or Drawbacks**\n\n- The user may feel skeptical about unknown brands even with high Tings Convert scores.\n- Material scores and environmental factors, while appreciated, are not top priorities for this user.\n- Some skepticism arises from a lack of familiarity with Tings Convert itself, as they are not yet accustomed to integrating resale data into their purchasing process.\n\n**6. Key Insights for Future Iterations**\n\n- Focus on **resale value** and **selling time** metrics to drive user confidence and decision-making.\n- Simplify or contextualize material scores, as they are less intuitive for users.\n- Offer clear explanations of how scores are calculated to build trust, particularly for unfamiliar brands.\n- Highlight how Tings Convert adds value for sustainable purchasing, which could resonate with environmentally conscious users.\n\n# Quotes\n\n1.\t**On Resale Value:** *“Det gir meg en større grunn til å kjøpe det nå, for jeg vet at det er et godt produkt.”*\n\n2.\t**On Confidence in Quality:** *“Det er kjekt å vite at det er populært, for det er noe med populæriteten … Man blir jo litt av flokkdyr da. Føler man har lyst til å gjøre det riktige valget.”*\n\n3.\t**On Reassurance:** *“Jeg synes dette er bra – en sånn trygghet på at det er et bra produkt.”*\n\n4.\t**On Familiarity with Resale:** *“Det hadde påvirket meg, for når jeg er ferdig med jakken, så vet jeg at det ligger en verdi i den.”*\n\n5.\t**On Trying New Brands:** *“Hvis du ser at kvalitetsverdien er høy, så kan det gi deg trygghet til å prøve et merke du ikke kjenner så godt.”*\n\n6.\t**On Seeing “Gjensalgsverdi” up front:** *“Dette liker jeg. Da koster jo jakken bare 2500 kr” (6499 minus estimatet som var 3200-4000)*",
+    "metadata": {
+      "title": "# Interview #3",
+      "wordCount": 618,
+      "extractionTime": 0,
+      "lineCount": 59,
+      "contentLength": 3918,
+      "originalFileSize": 4006
+    }
+  }
+}

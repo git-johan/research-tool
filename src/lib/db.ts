@@ -322,7 +322,7 @@ export interface DocumentDoc {
   uploadedAt: Date;
   processedAt?: Date;
   chunkCount?: number;
-  status: "uploading" | "ready_for_processing" | "processing_embeddings" | "completed" | "failed";
+  status: "uploading" | "imported" | "extracted" | "formatted" | "indexed" | "ready_for_processing" | "processing_embeddings" | "completed" | "failed";
   error?: string; // If processing failed
   clientId: string; // Associate with client browser
   documentType?: string; // Optional categorization (e.g., "interview", "research", "report")

@@ -250,8 +250,11 @@ export async function POST(req: NextRequest) {
         downloadedAt: downloadResult.metadata.downloadedAt,
         contentType: downloadResult.metadata.contentType,
         fileSizeKB: Math.round(downloadResult.metadata.fileSizeBytes / 1024),
-        downloadTimeMs: downloadResult.metadata.downloadTime
-      }
+        downloadTimeMs: downloadResult.metadata.downloadTime,
+        sourceType: "download",
+        status: "imported" // Ready for extraction
+      },
+      message: "File downloaded successfully. Use /api/extract/{fileId} to extract content."
     };
 
     return new Response(JSON.stringify(response), {

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { Logger } from "@/lib/logger";
-import { createDocument, updateDocumentStatus } from "@/lib/db";
-import { extractContent, getSupportedExtensions } from "@/lib/processing/extractors";
+import { createDocument } from "@/lib/db";
+import { getSupportedExtensions } from "@/lib/processing/extractors";
 import { calculateBufferHash, findExistingDocument, DuplicateType } from "@/lib/duplicate-detection";
 import fs from "fs/promises";
 import path from "path";
@@ -258,92 +258,40 @@ async function processSingleFile(
       };
     }
 
-    // Extract content using modular extraction system
-    let extractedContent;
-    try {
-      extractedContent = await extractContent(filePath, file.type);
-    } catch (error) {
-      // Clean up uploaded file if extraction failed
-      try {
-        await fs.unlink(filePath);
-      } catch (cleanupError) {
-        logger.warn(`Failed to clean up file ${file.name} after extraction error`);
-      }
+    // Note: Content extraction is now handled by dedicated /api/extract/{fileId} endpoint
+    // This API only handles file storage following single responsibility principle
 
-      const errorMessage = error instanceof Error ? error.message : 'Unknown extraction error';
-      return {
-        filename: file.name,
-        success: false,
-        error: errorMessage,
-        errorCode: "EXTRACTION_ERROR"
-      };
-    }
-
-    // Validate extracted content
-    if (extractedContent.text.trim().length === 0) {
-      // Clean up uploaded file
-      try {
-        await fs.unlink(filePath);
-      } catch (cleanupError) {
-        logger.warn(`Failed to clean up empty file ${file.name}`);
-      }
-      return {
-        filename: file.name,
-        success: false,
-        error: "File contains no readable text content",
-        errorCode: "NO_TEXT_CONTENT"
-      };
-    }
-
-    // Create text preview for metadata
-    const textPreview = extractedContent.text.substring(0, 200);
-    const { text, metadata } = extractedContent;
-
-    // Save document metadata to database
+    // Save document metadata to database (file storage only)
     try {
       const document = await createDocument(
         file.name,
         filePath,
         file.size,
-        metadata.encoding || 'binary',
+        'binary', // Default encoding for uploaded files
         file.type,
         clientId,
-        textPreview
+        `Uploaded file: ${file.name}` // Simple description instead of text preview
       );
 
-      // Update document metadata with extraction results
+      // Update document with upload-specific metadata
       const db = await import("@/lib/db").then(m => m.getDb());
       await db.collection("documents").updateOne(
         { _id: document._id },
         {
           $set: {
-            "metadata.wordCount": metadata.wordCount,
-            "metadata.title": metadata.title,
-            "metadata.author": metadata.author,
-            "metadata.pageCount": metadata.pageCount,
-            "metadata.extractionTime": metadata.extractionTime,
-            "metadata.createdAt": metadata.createdAt,
-            "metadata.modifiedAt": metadata.modifiedAt,
             "sourceType": "upload",
             "uploadedAt": new Date(),
             "contentHash": contentHash, // Add content hash for cross-source duplicate detection
-            "extractedContent": {
-              text: text,
-              preview: textPreview,
-              extractedAt: new Date()
-            }
+            "status": "imported" // Ready for extraction via /api/extract/{fileId}
           }
         }
       );
 
-      // Update status to imported (ready for extraction)
-      await updateDocumentStatus(document._id, "imported");
-
       const processingTime = Date.now() - startTime;
-      logger.info(`Successfully processed file: ${file.name}`, {
+      logger.info(`Successfully uploaded file: ${file.name}`, {
         metadata: {
           documentId: document._id,
-          wordCount: metadata.wordCount,
+          fileSizeKB: Math.round(file.size / 1024),
           processingTime
         }
       });
@@ -354,18 +302,13 @@ async function processSingleFile(
         fileId: document._id,
         filePath: filePath,
         metadata: {
-          title: metadata.title,
-          author: metadata.author,
-          wordCount: metadata.wordCount,
-          pageCount: metadata.pageCount,
-          extractionTime: metadata.extractionTime,
-          createdAt: metadata.createdAt,
-          modifiedAt: metadata.modifiedAt,
           contentType: file.type,
           fileSizeKB: Math.round(file.size / 1024),
           sourceType: "upload",
-          uploadedAt: new Date().toISOString()
-        }
+          uploadedAt: new Date().toISOString(),
+          status: "imported" // Ready for extraction
+        },
+        message: "File uploaded successfully. Use /api/extract/{fileId} to extract content."
       };
 
     } catch (error) {

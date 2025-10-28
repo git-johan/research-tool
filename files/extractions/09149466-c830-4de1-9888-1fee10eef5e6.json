@@ -1,0 +1,34 @@
+{
+  "document": {
+    "fileId": "09149466-c830-4de1-9888-1fee10eef5e6",
+    "filename": "1761641801699_kca7s5_steffen.txt",
+    "status": "imported",
+    "sourceType": "upload",
+    "mimeType": "text/plain",
+    "fileSizeBytes": 3093,
+    "contentHash": "e5918494fe3270dc6ae61b9c9b9bb7de118bc931766eba4ac87c8d671566605f",
+    "clientId": "test",
+    "uploadedAt": "2025-10-28T12:24:40.799Z"
+  },
+  "file": {
+    "originalPath": "/Users/johanjosok/Documents/Code/research-tool/files/uploads/1761654280788_2ju98o_1761641801699_kca7s5_steffen.txt",
+    "exists": true,
+    "actualSize": 3093,
+    "createdAt": "2025-10-28T12:24:40.789Z",
+    "modifiedAt": "2025-10-28T12:24:40.797Z"
+  },
+  "extraction": {
+    "extractedAt": "2025-10-28T13:04:25.816Z",
+    "extractionTime": 2,
+    "contentType": "text/plain",
+    "text": "37 year old software engineer\n\n# Summary\n\n```jsx\n### 1. **Does the user get enough information to trust the estimated future value?**\n\n- **Insights:**\n  - The user finds the resale value estimate helpful, particularly as a way to justify the purchase by reducing the perceived financial risk.\n  - Skepticism arises around the basis of the valuation, with a desire for transparency on how estimates are calculated (e.g., sales history, specific criteria).\n  - Users are reassured when additional details are available, such as examples of actual resale prices or validation from trusted sources.\n  - Trust in the estimate improves if the source is familiar or reputable (e.g., Trustpilot or known retailers).\n\n---\n\n### 2. **Does the user get enough information to trust the comparisons to other products in the same category?**\n\n- **Insights:**\n  - Comparisons, like “better than 92% of products in the category,” draw attention but raise questions about credibility and data sources.\n  - While such comparisons are seen as valuable, the user expressed a need for more clarity on the methodology or evidence supporting the claim.\n\n---\n\n### 3. **Does the user get enough information to trust the scores?**\n\n- **Insights:**\n  - Scores like “8/10” or “better than 92%” provide a quick impression but feel abstract without supporting data.\n  - Users prefer a combination of numerical scores and clear explanations or data to build trust in the scoring system.\n  - Trust in scores would improve if they were linked to verifiable sources or supported by detailed breakdowns.\n\n---\n\n### 4. **How does the feature in general impact the user's purchase decision?**\n\n- **Insights:**\n  - The feature helps users feel more confident in committing to higher-priced purchases by framing the item as an investment with potential resale value.\n  - It shifts the user's perspective from viewing the purchase as a sunk cost to seeing it as part of a lifecycle.\n  - While the feature may not immediately impact every purchase, it encourages users to consider resale and circular economy principles in future buying decisions.\n  - For users less familiar with resale practices, the feature acts as a gentle nudge to explore and potentially engage in the secondary market.\n  - Integration with trusted retailers positively influences the perception of both the retailer and the feature itself.\n```\n\n# Prompt\n\n```jsx\nI want you to help me answer two questions based on transcriptions from user interviews I've conducted. I don't explicitly ask the users these questions, but we talk around the topics.\n\nI show them the attached designs.\n\nHelp me understand:\n\n* Does the user get enough information to trust the estimated future value?\n* Does the user get enough information to trust the the comparisons to other products in the same category?\n* Does the user get enough information to trust the scores?\n* How does the feature in general impact the user's purchase decision?\n\nDon't recommend design changes, just summarise the insights.\n\nI'll share one interview at a time.\n\nRespond in Markup, please.\n```",
+    "metadata": {
+      "title": "37 year old software engineer",
+      "wordCount": 494,
+      "extractionTime": 1,
+      "lineCount": 62,
+      "contentLength": 3080,
+      "originalFileSize": 3093
+    }
+  }
+}
